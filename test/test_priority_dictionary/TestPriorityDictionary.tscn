@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://oex1m3mi0q7h"]
+
+[ext_resource type="Script" uid="uid://b08jbcdse221o" path="res://test/test_priority_dictionary/test_priority_dictionary.gd" id="1_s7yhw"]
+
+[node name="TestPriorityDictionary" type="Node"]
+script = ExtResource("1_s7yhw")
