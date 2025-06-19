@@ -66,6 +66,7 @@ func activate() -> Buff.BuffEventType:
 		_set_state(Buff.BuffEventType.REFUSED_TO_ACTIVATE)
 		return Buff.BuffEventType.REFUSED_TO_ACTIVATE
 
+
 func block() -> Buff.BuffEventType:
 	if buff == null or container == null:
 		return Buff.BuffEventType.ERROR_BLOCKING
@@ -199,6 +200,12 @@ func set_buff(p_buff: Buff) -> void:
 func set_container(p_container: BuffContainer) -> void:
 	container = p_container
 	cooldown_time = 0.0
+
+func can_stack_with(new_buff:Buff)->bool:
+	return buff._can_stack_with(new_buff) if buff != null else false
+
+func can_conflict_with(new_buff:Buff)->bool:
+	return buff._can_conflict_with(new_buff) if buff != null else false
 
 func should_be_activated() -> bool:
 	return buff._should_be_activated(container) if buff != null else false

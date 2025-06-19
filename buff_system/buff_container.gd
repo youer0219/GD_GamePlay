@@ -62,7 +62,17 @@ func add_buff(buff: Buff) -> bool:
 		push_error("The Buff cannot be null.")
 		return false
 	
-	if not _can_add_buff(buff):
+	var stack_runtime_buffs:Array[RuntimeBuff]
+	var conflict_runtime_buffs:Array[RuntimeBuff]
+	for existing_runtime_buff:RuntimeBuff in runtime_buffs.values():
+		if existing_runtime_buff.can_conflict_with(buff):
+			conflict_runtime_buffs.append(existing_runtime_buff)
+		elif existing_runtime_buff.can_stack_with(buff):
+			stack_runtime_buffs.append(existing_runtime_buff)
+	if not conflict_runtime_buffs.is_empty():
+		return false
+	elif not stack_runtime_buffs.is_empty():
+		## TODO:叠加机制
 		return false
 	
 	if not has_buff(buff):
@@ -88,8 +98,6 @@ func add_buff(buff: Buff) -> bool:
 	
 	return false
 
-func _can_add_buff(buff:Buff)->bool:
-	return buff._can_add_buff(self)
 
 func _build_runtime_buff(_buff: Buff) -> RuntimeBuff:
 	return RuntimeBuff.new()

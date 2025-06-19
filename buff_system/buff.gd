@@ -63,7 +63,11 @@ enum BuffEventType {
 
 var buff_name: StringName = ""
 
-func _can_add_buff(_buff_container: BuffContainer)->bool:
+
+func _can_conflict_with(_buff:Buff)->bool:
+	return true
+
+func _can_stack_with(_buff:Buff)->bool:
 	return true
 
 func _can_activate_cooldown(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
@@ -90,20 +94,23 @@ func _get_cooldown(_buff_container: BuffContainer) -> float:
 func _get_duration(_buff_container: BuffContainer) -> float:
 	return 0.0
 
-func _on_activate(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
-	return true
+func _on_activate(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
+	pass
 
-func _on_block(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
-	return true
+func _on_block(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
+	pass
 
-func _on_end(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
-	return true
+func _on_end(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
+	pass
 
-func _on_grant(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
-	return true
+func _on_grant(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
+	pass
 
-func _on_revoke(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
-	return true
+func _on_revoke(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
+	pass
+
+#func _on_refresh(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff, _new_buff:Buff):
+	#pass
 
 #func _on_tick(_delta: float, _tick_time: float, _buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> void:
 	#pass
