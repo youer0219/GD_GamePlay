@@ -62,6 +62,9 @@ func add_buff(buff: Buff) -> bool:
 		push_error("The Buff cannot be null.")
 		return false
 	
+	if not _can_add_buff(buff):
+		return false
+	
 	if not has_buff(buff):
 		var runtime_buff = _build_runtime_buff(buff)
 		runtime_buff.set_buff(buff)
@@ -84,6 +87,9 @@ func add_buff(buff: Buff) -> bool:
 			return true
 	
 	return false
+
+func _can_add_buff(buff:Buff)->bool:
+	return buff._can_add_buff(self)
 
 func _build_runtime_buff(_buff: Buff) -> RuntimeBuff:
 	return RuntimeBuff.new()

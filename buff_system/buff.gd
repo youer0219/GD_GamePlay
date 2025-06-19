@@ -63,6 +63,9 @@ enum BuffEventType {
 
 var buff_name: StringName = ""
 
+func _can_add_buff(_buff_container: BuffContainer)->bool:
+	return true
+
 func _can_activate_cooldown(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff) -> bool:
 	return true
 
