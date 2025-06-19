@@ -87,20 +87,20 @@ func _get_cooldown(_ability_container: AbilityContainer) -> float:
 func _get_duration(_ability_container: AbilityContainer) -> float:
 	return 0.0
 
-func _on_activate(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility) -> bool:
-	return true
+func _on_activate(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility):
+	pass
 
-func _on_block(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility) -> bool:
-	return true
+func _on_block(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility):
+	pass
 
-func _on_end(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility) -> bool:
-	return true
+func _on_end(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility):
+	pass
 
-func _on_grant(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility) -> bool:
-	return true
+func _on_grant(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility):
+	pass
 
-func _on_revoke(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility) -> bool:
-	return true
+func _on_revoke(_ability_container: AbilityContainer, _runtime_ability: RuntimeAbility):
+	pass
 
 #func _on_tick(_delta: float, _tick_time: float, _ability_container: AbilityContainer, _runtime_ability: RuntimeAbility) -> void:
 	#pass

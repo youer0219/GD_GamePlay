@@ -48,20 +48,17 @@ func activate() -> Ability.AbilityEventType:
 		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_COOLING_DOWN
 	
 	if ability._can_be_activated(container, self):
-		if ability._on_activate(container, self):
-			_set_state(Ability.AbilityEventType.ACTIVATED)
-			emit_signal("activated")
-			
-			if trigger_duration():
-				return Ability.AbilityEventType.ACTIVATED_DURATION_STARTED
-			
-			if trigger_cooldown():
-				return Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED
-			
-			return Ability.AbilityEventType.ACTIVATED
-		else:
-			_set_state(Ability.AbilityEventType.ERROR_ACTIVATING)
-			return Ability.AbilityEventType.ERROR_ACTIVATING
+		ability._on_activate(container, self)
+		_set_state(Ability.AbilityEventType.ACTIVATED)
+		emit_signal("activated")
+		
+		if trigger_duration():
+			return Ability.AbilityEventType.ACTIVATED_DURATION_STARTED
+		
+		if trigger_cooldown():
+			return Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED
+		
+		return Ability.AbilityEventType.ACTIVATED
 	else:
 		_set_state(Ability.AbilityEventType.REFUSED_TO_ACTIVATE)
 		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE
@@ -74,15 +71,12 @@ func block() -> Ability.AbilityEventType:
 		return Ability.AbilityEventType.REFUSED_TO_BLOCK_IS_NOT_GRANTED
 	
 	if ability._can_be_blocked(container, self):
-		if ability._on_block(container, self):
-			_set_state(Ability.AbilityEventType.BLOCKED)
-			emit_signal("blocked")
-			try_reset_cooldown()
-			try_reset_duration()
-			return Ability.AbilityEventType.BLOCKED
-		else:
-			_set_state(Ability.AbilityEventType.ERROR_BLOCKING)
-			return Ability.AbilityEventType.ERROR_BLOCKING
+		ability._on_block(container, self)
+		_set_state(Ability.AbilityEventType.BLOCKED)
+		emit_signal("blocked")
+		try_reset_cooldown()
+		try_reset_duration()
+		return Ability.AbilityEventType.BLOCKED
 	else:
 		_set_state(Ability.AbilityEventType.REFUSED_TO_BLOCK)
 		return Ability.AbilityEventType.REFUSED_TO_BLOCK
@@ -104,15 +98,12 @@ func end() -> Ability.AbilityEventType:
 		return Ability.AbilityEventType.REFUSED_TO_END_IS_NOT_GRANTED
 	
 	if ability._can_be_ended(container, self):
-		if ability._on_end(container, self):
-			_set_state(Ability.AbilityEventType.ENDED)
-			emit_signal("ended")
-			try_reset_cooldown()
-			try_reset_duration()
-			return Ability.AbilityEventType.ENDED
-		else:
-			_set_state(Ability.AbilityEventType.ERROR_ENDING)
-			return Ability.AbilityEventType.ERROR_ENDING
+		ability._on_end(container, self)
+		_set_state(Ability.AbilityEventType.ENDED)
+		emit_signal("ended")
+		try_reset_cooldown()
+		try_reset_duration()
+		return Ability.AbilityEventType.ENDED
 	else:
 		_set_state(Ability.AbilityEventType.REFUSED_TO_END)
 		return Ability.AbilityEventType.REFUSED_TO_END
@@ -137,13 +128,10 @@ func grant() -> Ability.AbilityEventType:
 		return Ability.AbilityEventType.REFUSED_TO_GRANT_ALREADY_GRANTED
 	
 	if ability._can_be_granted(container, self):
-		if ability._on_grant(container, self):
-			_set_state(Ability.AbilityEventType.GRANTED)
-			emit_signal("granted")
-			return Ability.AbilityEventType.GRANTED
-		else:
-			_set_state(Ability.AbilityEventType.ERROR_GRANTING)
-			return Ability.AbilityEventType.ERROR_GRANTING
+		ability._on_grant(container, self)
+		_set_state(Ability.AbilityEventType.GRANTED)
+		emit_signal("granted")
+		return Ability.AbilityEventType.GRANTED
 	else:
 		_set_state(Ability.AbilityEventType.REFUSED_TO_GRANT)
 		return Ability.AbilityEventType.REFUSED_TO_GRANT
@@ -177,17 +165,14 @@ func revoke() -> Ability.AbilityEventType:
 		return Ability.AbilityEventType.REFUSED_TO_REVOKE_ALREADY_REVOKED
 	
 	if ability._can_be_revoked(container, self):
-		if ability._on_revoke(container, self):
-			_set_state(Ability.AbilityEventType.REVOKED)
-			if not is_zero_approx(cooldown_time):
-				emit_signal("cooldown_end")
-			cooldown_time = 0.0
-			duration_time = 0.0
-			emit_signal("revoked")
-			return Ability.AbilityEventType.REVOKED
-		else:
-			_set_state(Ability.AbilityEventType.ERROR_REVOKING)
-			return Ability.AbilityEventType.ERROR_REVOKING
+		ability._on_revoke(container, self)
+		_set_state(Ability.AbilityEventType.REVOKED)
+		if not is_zero_approx(cooldown_time):
+			emit_signal("cooldown_end")
+		cooldown_time = 0.0
+		duration_time = 0.0
+		emit_signal("revoked")
+		return Ability.AbilityEventType.REVOKED
 	else:
 		_set_state(Ability.AbilityEventType.REFUSED_TO_REVOKE)
 		return Ability.AbilityEventType.REFUSED_TO_REVOKE
