@@ -16,8 +16,6 @@ signal buff_granted(buff: Buff)
 signal buff_removed(buff: Buff)
 signal buff_revoked(buff: Buff)
 signal buff_unblocked(buff: Buff)
-signal cooldown_started(buff: Buff)
-signal cooldown_ended(buff: Buff)
 
 var initial_buffs: Array[Buff] = []
 var runtime_buffs: Dictionary = {} # StringName: RuntimeBuff
@@ -29,6 +27,7 @@ func _ready() -> void:
 	set_physics_process(true)
 
 func _physics_process(delta: float) -> void:
+	# 处理所有 Buff 的 tick
 	for runtime_buff in runtime_buffs.values():
 		if runtime_buff and runtime_buff.is_granted():
 			runtime_buff.handle_tick(delta)
@@ -47,12 +46,6 @@ func _on_granted_buff(runtime_buff: RuntimeBuff) -> void:
 
 func _on_revoked_buff(runtime_buff: RuntimeBuff) -> void:
 	emit_signal("buff_revoked", runtime_buff.get_buff())
-
-func _on_cooldown_end(runtime_buff: RuntimeBuff) -> void:
-	emit_signal("cooldown_ended", runtime_buff.get_buff())
-
-func _on_cooldown_start(runtime_buff: RuntimeBuff) -> void:
-	emit_signal("cooldown_started", runtime_buff.get_buff())
 
 func _on_unblocked_buff(runtime_buff: RuntimeBuff) -> void:
 	emit_signal("buff_unblocked", runtime_buff.get_buff())
@@ -87,8 +80,6 @@ func add_buff(buff: Buff) -> bool:
 		runtime_buff.connect("ended", _on_ended_buff.bind(runtime_buff))
 		runtime_buff.connect("granted", _on_granted_buff.bind(runtime_buff))
 		runtime_buff.connect("revoked", _on_revoked_buff.bind(runtime_buff))
-		runtime_buff.connect("cooldown_ended", _on_cooldown_end.bind(runtime_buff))
-		runtime_buff.connect("cooldown_started", _on_cooldown_start.bind(runtime_buff))
 		runtime_buff.connect("unblocked", _on_unblocked_buff.bind(runtime_buff))
 		
 		emit_signal("buff_added", buff)
@@ -132,10 +123,6 @@ func is_buff_active(variant: Variant) -> bool:
 func is_buff_blocked(variant: Variant) -> bool:
 	var runtime_buff = get_runtime_buff(variant)
 	return runtime_buff and runtime_buff.is_blocked()
-
-func is_buff_cooldown_active(variant: Variant) -> bool:
-	var runtime_buff = get_runtime_buff(variant)
-	return runtime_buff and runtime_buff.is_cooldown_active()
 
 func is_buff_ended(variant: Variant) -> bool:
 	var runtime_buff = get_runtime_buff(variant)
