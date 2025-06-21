@@ -63,7 +63,6 @@ func block() -> Buff.BuffEventType:
 		buff._on_block(container, self)
 		_set_state(Buff.BuffEventType.BLOCKED)
 		emit_signal("blocked")
-		try_reset_duration()
 		return Buff.BuffEventType.BLOCKED
 	else:
 		_set_state(Buff.BuffEventType.REFUSED_TO_BLOCK)
@@ -86,7 +85,6 @@ func end() -> Buff.BuffEventType:
 		buff._on_end(container, self)
 		_set_state(Buff.BuffEventType.ENDED)
 		emit_signal("ended")
-		try_reset_duration()
 		return Buff.BuffEventType.ENDED
 	else:
 		_set_state(Buff.BuffEventType.REFUSED_TO_END)
@@ -217,14 +215,6 @@ func trigger_duration() -> bool:
 		duration_time = duration
 		return true
 	return false
-
-func try_reset_duration() -> void:
-	var should_reset_duration = true
-	if buff.has_method("_should_reset_duration"):
-		should_reset_duration = buff._should_reset_duration.call(container)
-	
-	if should_reset_duration:
-		duration_time = 0.0
 
 func _set_state(event_type: Buff.BuffEventType) -> void:
 	match event_type:

@@ -82,7 +82,8 @@ func _on_activate(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
 func _on_block(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
 	pass
 
-func _on_end(buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
+func _on_end(buff_container: BuffContainer, runtime_buff: RuntimeBuff):
+	runtime_buff.duration_time = 0.0
 	buff_container.call_deferred("remove_buff",self)
 
 func _on_grant(_buff_container: BuffContainer, _runtime_buff: RuntimeBuff):
@@ -101,7 +102,4 @@ func _should_be_blocked(_buff_container: BuffContainer) -> bool:
 	return false
 
 func _should_be_ended(_buff_container: BuffContainer) -> bool:
-	return true
-
-func _should_reset_duration(_buff_container: BuffContainer) -> bool:
 	return true
