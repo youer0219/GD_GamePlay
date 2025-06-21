@@ -18,6 +18,12 @@ var effect: Effect = null
 var container: EffectContainer = null
 var state: int = State.INIT
 var duration_time: float = 0.0
+var blackboard:Dictionary = {}
+
+func _init(new_effect:Effect,new_container:EffectContainer) -> void:
+	self.effect = new_effect
+	self.container = new_container
+	self.blackboard = new_effect.init_effect_blackboard
 
 func apply() -> void:
 	if not _is_base_check_pass():

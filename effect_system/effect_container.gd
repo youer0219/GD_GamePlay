@@ -62,9 +62,7 @@ func add_effect(effect: Effect) -> bool:
 	
 	# Add new effect if no conflicts and no stacking
 	if not has_effect(effect):
-		var runtime_effect = effect.get_runtime_instance()
-		runtime_effect.effect = effect
-		runtime_effect.container = self
+		var runtime_effect = effect.get_runtime_instance(self)
 		
 		runtime_effects[effect.effect_name] = runtime_effect
 		

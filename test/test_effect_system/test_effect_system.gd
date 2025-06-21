@@ -172,6 +172,7 @@ func test_conflict_handling() -> bool:
 	
 	container.queue_free()
 	return passed
+
 func test_state_transitions() -> bool:
 	print("\n[测试状态转换]")
 	var container = EffectContainer.new()
