@@ -28,7 +28,10 @@ func get_runtime_instance()->RuntimeEffect:
 
 # 检查与其他效果的堆叠/冲突关系
 func can_stack_with(_other_effect: Effect) -> bool:
-	return true
+	return false
 
 func conflicts_with(_other_effect: Effect) -> bool:
+	return false
+
+func should_active_in_addition()->bool:
 	return true
