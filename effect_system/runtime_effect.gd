@@ -1,12 +1,11 @@
 class_name RuntimeEffect
 extends RefCounted
 
-# 效果状态枚举（新增 PAUSED）
+# 效果状态枚举（已移除PAUSED）
 enum State {
 	INIT,       # 最初状态
 	APPLIED,    # 已应用但未激活
 	ACTIVE,     # 激活中（计时中）
-	PAUSED,     # 暂停（计时停止）
 	REMOVED,    # 已移除
 }
 
@@ -38,41 +37,15 @@ func activate() -> void:
 	effect._on_active(container, self)  # 触发激活回调
 	set_state(State.ACTIVE)
 
-# 暂停效果（从 ACTIVE → PAUSED）
-func pause() -> void:
-	if not _is_base_check_pass():
-		return
-	
-	#if state != State.ACTIVE:
-		#push_error("只能从ACTIVE状态暂停效果")  ## 允许从大部分状态暂停BUFF
-		#return
-	if state == State.REMOVED:
-		return
-	
-	effect._on_pause(container, self)  # 触发暂停回调
-	set_state(State.PAUSED)
-
-# 恢复效果（从 PAUSED → ACTIVE）
-func resume() -> void:
-	if not _is_base_check_pass():
-		return
-	
-	if state != State.PAUSED:
-		push_error("只能从PAUSED状态恢复效果")
-		return
-	
-	effect._on_resume(container, self)  # 触发恢复回调
-	set_state(State.ACTIVE)
-
-# 移除效果（支持从 APPLIED/ACTIVE/PAUSED → REMOVED）
+# 移除效果（支持从 APPLIED/ACTIVE → REMOVED）
 func remove() -> void:
 	if not _is_base_check_pass():
 		return
 	
-	if state == State.REMOVED:
+	if state == State.REMOVED or state == State.INIT: # INIT状态不应该在容器中的effect状态中出现
 		return
 	
-	effect._on_remove(container, self)  # 触发移除回调（无论原状态）
+	effect._on_remove(container, self)  # 触发移除回调
 	set_state(State.REMOVED)
 
 # 每帧更新（仅在 ACTIVE 状态时计时）
@@ -84,7 +57,7 @@ func handle_tick(delta: float) -> void:
 		if not is_duration_active():  # 计时结束自动移除
 			remove()
 			return
-	effect._on_tick(container, self, delta)  # 无论状态都触发Tick回调（需Effect自行处理PAUSED逻辑）
+	effect._on_tick(container, self, delta)  # 触发Tick回调
 
 # 状态检查辅助函数
 func is_duration_active() -> bool:

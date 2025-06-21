@@ -4,7 +4,6 @@ extends Resource
 # 效果名称
 @export var effect_name: StringName = &""
 
-
 # 生命周期回调 - 子类可重写这些方法
 func _on_apply(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
 	pass
@@ -17,18 +16,6 @@ func _on_stack(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> v
 
 func _on_remove(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
 	pass
-
-func _on_pause(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
-	pass
-
-func _on_resume(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
-	pass
-
-#func _on_higher_buff_covered(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
-	#pass
-#
-#func _on_higher_buff_uncover(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
-	#pass
 
 func _on_tick(_container: EffectContainer, _runtime_effect: RuntimeEffect, _delta: float) -> void:
 	pass
