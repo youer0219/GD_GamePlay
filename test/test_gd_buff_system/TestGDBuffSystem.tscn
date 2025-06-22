@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://do8p7ppsa4dir"]
+
+[ext_resource type="Script" uid="uid://b05djbq4yl4ft" path="res://test/test_gd_buff_system/test_gd_buff_system.gd" id="1_m6nir"]
+
+[node name="TestGDBuffSystem" type="Node"]
+script = ExtResource("1_m6nir")
