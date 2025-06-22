@@ -30,14 +30,14 @@ func effect_awake()->void:
 		return
 		
 	effect._on_effect_awake(container, self)
-	awake.emit(self)
+	awake.emit()
 
 func effect_start() -> void:
 	if not _is_base_check_pass():
 		return
 		
 	effect._on_effect_start(container, self)
-	started.emit(self)
+	started.emit()
 
 func effect_process(delta: float) -> void:
 	if not _is_base_check_pass():
@@ -51,7 +51,7 @@ func effect_process(delta: float) -> void:
 func effect_interval_trigger() -> void:
 	if not _is_base_check_pass():
 		return
-		
+	
 	effect._on_effect_interval_trigger(container, self)
 	interval_triggered.emit()
 
