@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="能力系统GDS版本"
+config/name="GD_GamePlay"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
