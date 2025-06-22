@@ -41,3 +41,6 @@ func can_stack_with(_other_effect: Effect) -> bool:
 
 func conflicts_with(_other_effect: Effect) -> bool:
 	return false
+
+func can_remove_effect(_container: EffectContainer, runtime_effect: RuntimeEffect)->bool:
+	return not runtime_effect.is_duration_active()

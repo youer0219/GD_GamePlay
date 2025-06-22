@@ -8,7 +8,7 @@ enum ErrorType {
 
 # Effect management signals
 signal effect_awake(can_free_runtime_effect:RuntimeEffect)
-signal effect_started(runtime_effects:Array[RuntimeEffect])
+signal effect_started(runtime_effect:RuntimeEffect)
 signal effect_refreshed(runtime_effect:RuntimeEffect)
 signal effect_interval_triggered(runtime_effect:RuntimeEffect)
 signal effect_removed(runtime_effect:RuntimeEffect)
@@ -17,9 +17,6 @@ var initial_effects: Array[Effect] = []
 ## 待添加的效果字典。每帧开始时将其运行时效果实例化、添加到runtime_effects字典中并调用其start方法
 var pending_add_effects:Dictionary = {}
 var runtime_effects: Dictionary = {} # StringName: RuntimeEffect
-
-## TODO:
-## 移除逻辑非常糟糕，需要重构（抄谁的？）
 
 func _ready() -> void:
 	for effect in initial_effects:
@@ -34,11 +31,15 @@ func _physics_process(delta: float) -> void:
 		runtime_effect.effect_start()
 	
 	if not pending_add_effects.is_empty():
-		effect_started.emit(pending_add_effects)
-	pending_add_effects.clear()
+		pending_add_effects.clear()
 	
+	var should_remove_effects:Array[RuntimeEffect] = []
 	for runtime_effect:RuntimeEffect in runtime_effects.values():
 		runtime_effect.effect_process(delta)
+		if runtime_effect.can_remove_effect():
+			should_remove_effects.append(runtime_effect)
+	for should_remove_effect in should_remove_effects:
+		_remove_runtime_effect(should_remove_effect)
 
 func _on_effect_started(runtime_effect: RuntimeEffect) -> void:
 	effect_started.emit(runtime_effect)
@@ -51,7 +52,6 @@ func _on_interval_triggered(runtime_effect: RuntimeEffect) -> void:
 
 func _on_effect_removed(runtime_effect: RuntimeEffect) -> void:
 	effect_removed.emit(runtime_effect)
-	
 
 func add_effect(effect: Effect) -> bool:
 	if not effect:
@@ -87,23 +87,23 @@ func add_effect(effect: Effect) -> bool:
 	return true
 
 func remove_effect(effect: Effect) -> bool:
-	var runtime_effect:RuntimeEffect = runtime_effects.get(effect.effect_name,null)
-	var should_disconnect:bool = false
+	var runtime_effect:RuntimeEffect = get_runtime_effect(effect)
+	return _remove_runtime_effect(runtime_effect)
+
+func _remove_runtime_effect(runtime_effect:RuntimeEffect)->bool:
 	if runtime_effect == null:
-		runtime_effect = pending_add_effects.get(effect.effect_name,null)
-		if runtime_effect == null:
-			return false
-		pending_add_effects.erase(effect.effect_name)
-	else:
-		runtime_effects.erase(effect.effect_name)
-		should_disconnect = true
+		push_error("Attempted to remove unexisting effect")
+		return false
 	
 	runtime_effect.effect_remove()
-	if should_disconnect:
+	
+	if pending_add_effects.has(runtime_effect.effect.effect_name): ## 通过不在pending_add_effects内判断其位置且 pending_add_effects 一般很小
+		pending_add_effects.erase(runtime_effect.effect.effect_name)
+	else:
+		runtime_effects.erase(runtime_effect.effect.effect_name)
 		_disconnect_runtime_effect(runtime_effect)
 	
 	return true
-
 
 func has_effect(effect: Effect) -> bool:
 	if pending_add_effects.has(effect.effect_name):
@@ -111,7 +111,8 @@ func has_effect(effect: Effect) -> bool:
 	return runtime_effects.has(effect.effect_name)
 
 func get_runtime_effect(effect: Effect) -> RuntimeEffect:
-	return runtime_effects.get(effect.effect_name)
+	var runtime_effect = runtime_effects.get(effect.effect_name)
+	return runtime_effect if runtime_effect != null else pending_add_effects.get(effect.effect_name)
 
 func get_runtime_effects()->Array[RuntimeEffect]:
 	var all_runtime_effects:Array[RuntimeEffect] = []
@@ -121,13 +122,6 @@ func get_runtime_effects()->Array[RuntimeEffect]:
 
 func get_initial_effects() -> Array[Effect]:
 	return initial_effects
-
-#func _remove_runtime_effect(runtime_effect: RuntimeEffect) -> void:
-	#if runtime_effect in pending_add_effects.values():
-		#pending_add_effects.erase(runtime_effect.effect.effect_name)
-	#elif runtime_effect in runtime_effects.values():
-		#runtime_effects.erase(runtime_effect.effect.effect_name)
-		#_disconnect_runtime_effect(runtime_effect)
 
 func _connect_runtime_effect(runtime_effect:RuntimeEffect):
 	runtime_effect.started.connect(_on_effect_started.bind(runtime_effect))

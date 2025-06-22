@@ -11,7 +11,7 @@ var effect: Effect = null
 var container: EffectContainer = null
 var duration_time: float = 0.0
 var blackboard: Dictionary = {}
-var _interval_timer: float = 0.0  # 添加间隔计时器
+#var _interval_timer: float = 0.0  # 添加间隔计时器
 
 func _init(new_effect: Effect, new_container: EffectContainer) -> void:
 	if not new_effect or not new_container:
@@ -21,7 +21,8 @@ func _init(new_effect: Effect, new_container: EffectContainer) -> void:
 	self.effect = new_effect
 	self.container = new_container
 	self.blackboard = new_effect.init_effect_blackboard.duplicate(true)
-	self._interval_timer = 0.0
+	#self._interval_timer = 0.0
+	self.duration_time = effect.get_duration()
 
 func effect_start() -> void:
 	if not _is_base_check_pass():
@@ -37,13 +38,13 @@ func effect_process(delta: float) -> void:
 	# 处理持续时间
 	duration_time = max(0.0, duration_time - delta)
 	
-	# 处理间隔触发
-	var interval = effect.get_interval()
-	if interval > 0.0:
-		_interval_timer += delta
-		if _interval_timer >= interval:
-			_interval_timer = 0.0
-			effect_interval_trigger()
+	## 处理间隔触发
+	#var interval = effect.get_interval()
+	#if interval > 0.0:
+		#_interval_timer += delta
+		#if _interval_timer >= interval:
+			#_interval_timer = 0.0
+			#effect_interval_trigger()
 	
 	effect._on_effect_process(container, self, delta)
 
@@ -75,10 +76,13 @@ func effect_stack(new_effect: Effect) -> void:
 	effect._on_effect_stack(container, self , new_effect)
 
 func can_stack_with(other_effect: Effect) -> bool:
-	return effect != null and effect.can_stack_with(other_effect)
+	return effect.can_stack_with(other_effect)
 
 func conflicts_with(other_effect: Effect) -> bool:
-	return effect != null and effect.conflicts_with(other_effect)
+	return effect.conflicts_with(other_effect)
+
+func can_remove_effect()->bool:
+	return effect.can_remove_effect(container,self)
 
 func is_duration_active() -> bool:
 	return not is_zero_approx(duration_time)
