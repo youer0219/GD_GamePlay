@@ -6,7 +6,7 @@ extends Resource
 @export var duration: float = 0.0
 @export var interval: float = 0.0
 
-func _on_effect_awake() -> void:
+func _on_effect_awake(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
 	pass
 
 func _on_effect_start(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
@@ -15,23 +15,18 @@ func _on_effect_start(_container: EffectContainer, _runtime_effect: RuntimeEffec
 func _on_effect_process(_container: EffectContainer, _runtime_effect: RuntimeEffect, _delta: float) -> void:
 	pass
 
-func _on_effect_refresh(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
+func _on_effect_refresh(_container: EffectContainer, _runtime_effect: RuntimeEffect, _new_effect:Effect) -> void:
 	pass
 
-func _on_effect_interval_trigger(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
-	pass
+# 暂时不实现
+#func _on_effect_interval_trigger(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
+	#pass
 
 func _on_effect_remove(_container: EffectContainer, _runtime_effect: RuntimeEffect) -> void:
 	pass
 
-func _on_effect_stack(_container: EffectContainer, _runtime_effect: RuntimeEffect, _new_effect:Effect) -> void:
-	pass
-
 func get_duration() -> float:
 	return duration
-
-func get_interval() -> float:
-	return interval
 
 func get_runtime_instance(container: EffectContainer) -> RuntimeEffect:
 	return RuntimeEffect.new(self, container)

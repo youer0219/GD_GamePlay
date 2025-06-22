@@ -1,13 +1,8 @@
 class_name EffectContainer
 extends Node
 
-enum ErrorType {
-	NOT_FOUND,
-	PARAMETER_IS_NULL
-}
-
 # Effect management signals
-signal effect_awake(can_free_runtime_effect:RuntimeEffect)
+signal effect_awake(runtime_effect:RuntimeEffect)
 signal effect_started(runtime_effect:RuntimeEffect)
 signal effect_refreshed(runtime_effect:RuntimeEffect)
 signal effect_interval_triggered(runtime_effect:RuntimeEffect)
@@ -41,6 +36,9 @@ func _physics_process(delta: float) -> void:
 	for should_remove_effect in should_remove_effects:
 		_remove_runtime_effect(should_remove_effect)
 
+func _on_effect_awake(runtime_effect: RuntimeEffect) -> void:
+	effect_awake.emit(runtime_effect)
+
 func _on_effect_started(runtime_effect: RuntimeEffect) -> void:
 	effect_started.emit(runtime_effect)
 
@@ -71,7 +69,7 @@ func add_effect(effect: Effect) -> bool:
 	if not conflict_runtime_effects.is_empty():
 		return false
 	elif not stack_runtime_effects.is_empty():
-		stack_runtime_effects[0].effect_stack(effect)
+		stack_runtime_effects[0].effect_refresh(effect)
 		return false
 	
 	if has_effect(effect):
@@ -79,10 +77,7 @@ func add_effect(effect: Effect) -> bool:
 	
 	var runtime_effect = effect.get_runtime_instance(self)
 	pending_add_effects[effect.effect_name] = runtime_effect
-	effect_awake.emit(runtime_effect)
-	if runtime_effect == null:
-		pending_add_effects.erase(effect.effect_name)
-		return false
+	runtime_effect.effect_awake()
 	
 	return true
 
@@ -124,12 +119,14 @@ func get_initial_effects() -> Array[Effect]:
 	return initial_effects
 
 func _connect_runtime_effect(runtime_effect:RuntimeEffect):
+	runtime_effect.awake.connect(_on_effect_awake.bind(runtime_effect))
 	runtime_effect.started.connect(_on_effect_started.bind(runtime_effect))
 	runtime_effect.refreshed.connect(_on_effect_refreshed.bind(runtime_effect))
 	runtime_effect.interval_triggered.connect(_on_interval_triggered.bind(runtime_effect))
 	runtime_effect.removed.connect(_on_effect_removed.bind(runtime_effect))
 
 func _disconnect_runtime_effect(runtime_effect:RuntimeEffect):
+	runtime_effect.awake.disconnect(_on_effect_awake.bind(runtime_effect))
 	runtime_effect.started.disconnect(_on_effect_started)
 	runtime_effect.refreshed.disconnect(_on_effect_refreshed)
 	runtime_effect.interval_triggered.disconnect(_on_interval_triggered)
