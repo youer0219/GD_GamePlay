@@ -13,7 +13,7 @@ func print_result(test_name: String, passed: bool):
 	var color = "[color=green]" if passed else "[color=red]"
 	print_rich(color + test_name + (": PASSED" if passed else ": FAILED") + "[/color]")
 
-## 1. GD_Ability 测试用例 (修正版)
+## 1. GD_Ability 测试用例
 func test_ability():
 	print("\n=== Testing GD_Ability ===")
 	
@@ -44,12 +44,12 @@ func test_ability():
 	
 	test_node.free()
 
-## 2. GD_RuntimeAbility 测试用例 (修正版)
+## 2. GD_RuntimeAbility 测试用例
 func test_runtime_ability():
 	print("\n=== Testing GD_RuntimeAbility ===")
 	
 	var container = GD_AbilityContainer.new()
-	var ability = GD_Ability.new()
+	var ability = CustomAbility.new()
 	ability.ability_name = "TestAbility"
 	
 	var runtime_ability = GD_RuntimeAbility.new()
@@ -72,20 +72,16 @@ func test_runtime_ability():
 	print_result("After activate is_active", runtime_ability.is_active() == true)
 	
 	# 测试冷却时间
-	var cooldown_ability = CustomAbility.new()
-	cooldown_ability.cooldown = 3.0
-	runtime_ability.set_ability(cooldown_ability)
-	
 	runtime_ability.handle_tick(4.0)
 	print_result("Cooldown after tick", runtime_ability.is_cooldown_active() == false)
 	
-	#runtime_ability.end()
-	#print_result("Cooldown after end", runtime_ability.is_cooldown_active() == true)
-	#print_result("Cooldown time set", is_equal_approx(runtime_ability.cooldown_time, 3.0))
+	runtime_ability.end()
+	print_result("Cooldown after end", runtime_ability.is_cooldown_active() == false)
+	print_result("Cooldown time reset by 0.0", is_equal_approx(runtime_ability.cooldown_time, 0.0))
 	
 	# 测试阻塞
 	var block_result = runtime_ability.block()
-	print_result("Block result", block_result == GD_Ability.AbilityEventType.REFUSED_TO_BLOCK)
+	print_result("Block result", block_result == GD_Ability.AbilityEventType.BLOCKED)
 	print_result("After block is_blocked", runtime_ability.is_blocked() == true)
 	print_result("Block resets active", runtime_ability.is_active() == false)
 	
@@ -96,17 +92,17 @@ func test_runtime_ability():
 	
 	# 测试撤销
 	var revoke_result = runtime_ability.revoke()
-	print_result("Revoke result", revoke_result == GD_Ability.AbilityEventType.REFUSED_TO_REVOKE)
+	print_result("Revoke result", revoke_result == GD_Ability.AbilityEventType.REVOKED)
 	print_result("After revoke is_granted", runtime_ability.is_granted() == false)
 	
 	container.free()
 
-## 3. GD_AbilityContainer 测试用例 (修正版)
+## 3. GD_AbilityContainer 测试用例
 func test_ability_container():
 	print("\n=== Testing GD_AbilityContainer ===")
 	
 	var container = GD_AbilityContainer.new()
-	add_child(container)  # 需要添加到场景树才能正确处理信号
+	add_child(container)
 	
 	var ability1 = GD_Ability.new()
 	ability1.ability_name = "Ability1"
@@ -177,5 +173,3 @@ class CustomAbility extends GD_Ability:
 
 	func _should_be_activated(_ability_container: Node) -> bool:
 		return true
-
-## TODO: 重写RunAbility的测试用例

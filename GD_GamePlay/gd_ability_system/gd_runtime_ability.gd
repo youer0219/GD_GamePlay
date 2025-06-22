@@ -226,7 +226,7 @@ func handle_tick(delta: float) -> void:
 	if (state & AbilityState.COOLING_DOWN) == AbilityState.COOLING_DOWN and is_cooldown_active():
 		cooldown_time = clamp(cooldown_time - delta, 0.0, get_cooldown())
 		if not is_cooldown_active():
-			emit_signal("cooldown_end")
+			emit_signal("cooldown_ended")
 		return
 	
 	if should_be_ended():
