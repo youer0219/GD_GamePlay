@@ -7,12 +7,16 @@ enum ErrorType {
 }
 
 # Effect management signals
+signal effect_awake(new_effect:RuntimeEffect)
 signal effect_applied(runtime_effect:RuntimeEffect)
 signal effect_activated(runtime_effect:RuntimeEffect)
 signal effect_removed(runtime_effect:RuntimeEffect)
 signal effect_ended(runtime_effect:RuntimeEffect)
 
+
 var initial_effects: Array[Effect] = []
+## 待添加的效果字典。每帧开始时将其运行时效果实例化、添加到runtime_effects字典中并调用其start方法
+var pending_add_effects:Dictionary = {}
 var runtime_effects: Dictionary = {} # StringName: RuntimeEffect
 
 func _ready() -> void:
@@ -22,10 +26,17 @@ func _ready() -> void:
 	set_physics_process(true)
 
 func _physics_process(delta: float) -> void:
-	# Process all effect ticks
-	for runtime_effect in runtime_effects.values():
-		if runtime_effect and runtime_effect.state == RuntimeEffect.State.ACTIVE:
-			runtime_effect.handle_tick(delta)
+	for runtime_effect:RuntimeEffect in pending_add_effects.values():
+		runtime_effects[runtime_effect.effect.effect_name] = runtime_effect
+		runtime_effect.connect("applied", _on_effect_applied.bind(runtime_effect))
+		runtime_effect.connect("activated", _on_effect_activated.bind(runtime_effect))
+		runtime_effect.connect("removed", _on_effect_removed.bind(runtime_effect))
+		runtime_effect.effect_start()
+	
+	pending_add_effects = {}
+	
+	for runtime_effect:RuntimeEffect in runtime_effects.values():
+		runtime_effect.effect_process(delta)
 
 func _on_effect_applied(runtime_effect: RuntimeEffect) -> void:
 	emit_signal("effect_applied", runtime_effect)
@@ -44,11 +55,11 @@ func add_effect(effect: Effect) -> bool:
 		push_error("The Effect cannot be null.")
 		return false
 	
-	# Check for conflicts and stacking
+	## 重叠和重复检查
 	var conflict_runtime_effects: Array[RuntimeEffect] = []
 	var stack_runtime_effects: Array[RuntimeEffect] = []
 	
-	for existing_runtime_effect:RuntimeEffect in runtime_effects.values():
+	for existing_runtime_effect:RuntimeEffect in get_runtime_effects():
 		if existing_runtime_effect.conflicts_with(effect):
 			conflict_runtime_effects.append(existing_runtime_effect)
 		elif existing_runtime_effect.can_stack_with(effect):
@@ -57,85 +68,53 @@ func add_effect(effect: Effect) -> bool:
 	if not conflict_runtime_effects.is_empty():
 		return false
 	elif not stack_runtime_effects.is_empty():
-		stack_runtime_effects[0].stack(effect)
+		stack_runtime_effects[0].effect_stack(effect)
 		return false
 	
-	# Add new effect if no conflicts and no stacking
-	if not has_effect(effect):
-		var runtime_effect = effect.get_runtime_instance(self)
-		
-		runtime_effects[effect.effect_name] = runtime_effect
-		
-		# Connect signals
-		runtime_effect.connect("applied", _on_effect_applied.bind(runtime_effect))
-		runtime_effect.connect("activated", _on_effect_activated.bind(runtime_effect))
-		runtime_effect.connect("removed", _on_effect_removed.bind(runtime_effect))
-		
-		# Apply and activate the effect
-		runtime_effect.apply()
-		if runtime_effect.state == RuntimeEffect.State.APPLIED and runtime_effect.should_active_in_addition():
-			runtime_effect.activate()
-		
-		return true
+	if has_effect(effect):
+		return false
 	
-	return false
-
-func get_runtime_effect(effect: Effect) -> RuntimeEffect:
-	return runtime_effects.get(effect.effect_name)
-
-func get_runtime_effects() -> Array[RuntimeEffect]:
-	return Array(runtime_effects.values(), TYPE_OBJECT, "RefCounted", RuntimeEffect)
-
-func get_initial_effects() -> Array[Effect]:
-	return initial_effects
-
-func has_effect(effect: Effect) -> bool:
-	return runtime_effects.has(effect.effect_name)
-
-func is_effect_active(effect: Effect) -> bool:
-	var runtime_effect = get_runtime_effect(effect)
-	return runtime_effect and runtime_effect.state == RuntimeEffect.State.ACTIVE
-
-func is_effect_applied(effect: Effect) -> bool:
-	var runtime_effect = get_runtime_effect(effect)
-	return runtime_effect and runtime_effect.state == RuntimeEffect.State.APPLIED
+	var runtime_effect = effect.get_runtime_instance(self)
+	pending_add_effects[effect.effect_name] = runtime_effect
+	effect_awake.emit(runtime_effect)
+	
+	return true
 
 func remove_effect(effect: Effect) -> bool:
-	if has_effect(effect):
-		var runtime_effect = runtime_effects[effect.effect_name]
-		
-		if runtime_effect.state != RuntimeEffect.State.REMOVED:
-			runtime_effect.remove()
-		
-		runtime_effect.disconnect("applied", _on_effect_applied.bind(runtime_effect))
-		runtime_effect.disconnect("activated", _on_effect_activated.bind(runtime_effect))
-		runtime_effect.disconnect("removed", _on_effect_removed.bind(runtime_effect))
-		
+	var runtime_effect:RuntimeEffect = runtime_effects.get(effect.effect_name,null)
+	if runtime_effect == null:
+		runtime_effect = pending_add_effects.get(effect.effect_name,null)
+		if runtime_effect == null:
+			return false
+		pending_add_effects.erase(effect.effect_name)
+	else:
 		runtime_effects.erase(effect.effect_name)
-		emit_signal("effect_removed", effect)
-		return true
-	return false
+	
+	runtime_effect.effect_remove()
+	
+	runtime_effect.disconnect("applied", _on_effect_applied.bind(runtime_effect))
+	runtime_effect.disconnect("activated", _on_effect_activated.bind(runtime_effect))
+	runtime_effect.disconnect("removed", _on_effect_removed.bind(runtime_effect))
+	
+	emit_signal("effect_removed", runtime_effect)
+	return true
 
 func set_initial_effects(effects: Array[Effect]) -> void:
 	initial_effects = effects
 
-func try_apply(effect: Effect) -> bool:
-	var runtime_effect = get_runtime_effect(effect)
-	if runtime_effect and runtime_effect.state == RuntimeEffect.State.INIT:
-		runtime_effect.apply()
-		return runtime_effect.state == RuntimeEffect.State.APPLIED
-	return false
+func has_effect(effect: Effect) -> bool:
+	if pending_add_effects.has(effect.effect_name):
+		return true
+	return runtime_effects.has(effect.effect_name)
 
-func try_activate(effect: Effect) -> bool:
-	var runtime_effect = get_runtime_effect(effect)
-	if runtime_effect and runtime_effect.state == RuntimeEffect.State.APPLIED:
-		runtime_effect.activate()
-		return runtime_effect.state == RuntimeEffect.State.ACTIVE
-	return false
+func get_runtime_effect(effect: Effect) -> RuntimeEffect:
+	return runtime_effects.get(effect.effect_name)
 
-func try_remove(effect: Effect) -> bool:
-	var runtime_effect = get_runtime_effect(effect)
-	if runtime_effect and runtime_effect.state != RuntimeEffect.State.REMOVED:
-		runtime_effect.remove()
-		return runtime_effect.state == RuntimeEffect.State.REMOVED
-	return false
+func get_runtime_effects()->Array[RuntimeEffect]:
+	var all_runtime_effects:Array[RuntimeEffect] = []
+	all_runtime_effects.append_array(pending_add_effects.values())
+	all_runtime_effects.append_array(runtime_effects.values())
+	return all_runtime_effects
+
+func get_initial_effects() -> Array[Effect]:
+	return initial_effects
