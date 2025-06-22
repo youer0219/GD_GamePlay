@@ -2,28 +2,6 @@
 class_name Ability
 extends Resource
 
-# 能力事件信号
-@warning_ignore("unused_signal")
-signal activated(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal blocked(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal ended(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal granted(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal revoked(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal unblocked(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal cooldown_started(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal cooldown_ended(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal duration_started(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-@warning_ignore("unused_signal")
-signal duration_ended(ability_container: AbilityContainer, runtime_ability: RuntimeAbility)
-
 enum AbilityEventType {
 	ACTIVATED,
 	ACTIVATED_COOLDOWN_STARTED,

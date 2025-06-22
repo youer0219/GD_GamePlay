@@ -11,8 +11,6 @@ signal revoked
 signal unblocked
 signal cooldown_started
 signal cooldown_ended
-#signal duration_started
-#signal duration_ended
 
 enum AbilityState {
 	IDLE = 1,
