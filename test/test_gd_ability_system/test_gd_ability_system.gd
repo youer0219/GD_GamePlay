@@ -13,22 +13,22 @@ func print_result(test_name: String, passed: bool):
 	var color = "[color=green]" if passed else "[color=red]"
 	print_rich(color + test_name + (": PASSED" if passed else ": FAILED") + "[/color]")
 
-## 1. Ability 测试用例 (修正版)
+## 1. GD_Ability 测试用例 (修正版)
 func test_ability():
-	print("\n=== Testing Ability ===")
+	print("\n=== Testing GD_Ability ===")
 	
 	# 测试基础能力创建
-	var ability = Ability.new()
+	var ability = GD_Ability.new()
 	ability.ability_name = "TestAbility"
-	print_result("Ability creation", ability != null and ability.ability_name == "TestAbility")
+	print_result("GD_Ability creation", ability != null and ability.ability_name == "TestAbility")
 	
 	# 测试默认值
 	print_result("Default cooldown", ability._get_cooldown(null) == 0.0)
 	print_result("Default duration", ability._get_duration(null) == 0.0)
 	
 	# 测试默认行为
-	var test_node = AbilityContainer.new()
-	var runtime_ability = RuntimeAbility.new()
+	var test_node = GD_AbilityContainer.new()
+	var runtime_ability = GD_RuntimeAbility.new()
 	runtime_ability.set_ability(ability)
 	runtime_ability.set_container(test_node)
 	
@@ -44,15 +44,15 @@ func test_ability():
 	
 	test_node.free()
 
-## 2. RuntimeAbility 测试用例 (修正版)
+## 2. GD_RuntimeAbility 测试用例 (修正版)
 func test_runtime_ability():
-	print("\n=== Testing RuntimeAbility ===")
+	print("\n=== Testing GD_RuntimeAbility ===")
 	
-	var container = AbilityContainer.new()
-	var ability = Ability.new()
+	var container = GD_AbilityContainer.new()
+	var ability = GD_Ability.new()
 	ability.ability_name = "TestAbility"
 	
-	var runtime_ability = RuntimeAbility.new()
+	var runtime_ability = GD_RuntimeAbility.new()
 	runtime_ability.set_ability(ability)
 	runtime_ability.set_container(container)
 	
@@ -63,12 +63,12 @@ func test_runtime_ability():
 	
 	# 测试授权
 	var grant_result = runtime_ability.grant()
-	print_result("Grant result", grant_result == Ability.AbilityEventType.GRANTED)
+	print_result("Grant result", grant_result == GD_Ability.AbilityEventType.GRANTED)
 	print_result("After grant is_granted", runtime_ability.is_granted() == true)
 	
 	# 测试激活
 	var activate_result = runtime_ability.activate()
-	print_result("Activate result", activate_result == Ability.AbilityEventType.ACTIVATED)
+	print_result("Activate result", activate_result == GD_Ability.AbilityEventType.ACTIVATED)
 	print_result("After activate is_active", runtime_ability.is_active() == true)
 	
 	# 测试冷却时间
@@ -85,30 +85,30 @@ func test_runtime_ability():
 	
 	# 测试阻塞
 	var block_result = runtime_ability.block()
-	print_result("Block result", block_result == Ability.AbilityEventType.REFUSED_TO_BLOCK)
+	print_result("Block result", block_result == GD_Ability.AbilityEventType.REFUSED_TO_BLOCK)
 	print_result("After block is_blocked", runtime_ability.is_blocked() == true)
 	print_result("Block resets active", runtime_ability.is_active() == false)
 	
 	# 测试解除阻塞
 	var unblock_result = runtime_ability.unblock()
-	print_result("Unblock result", unblock_result == Ability.AbilityEventType.UNBLOCKED)
+	print_result("Unblock result", unblock_result == GD_Ability.AbilityEventType.UNBLOCKED)
 	print_result("After unblock is_blocked", runtime_ability.is_blocked() == false)
 	
 	# 测试撤销
 	var revoke_result = runtime_ability.revoke()
-	print_result("Revoke result", revoke_result == Ability.AbilityEventType.REFUSED_TO_REVOKE)
+	print_result("Revoke result", revoke_result == GD_Ability.AbilityEventType.REFUSED_TO_REVOKE)
 	print_result("After revoke is_granted", runtime_ability.is_granted() == false)
 	
 	container.free()
 
-## 3. AbilityContainer 测试用例 (修正版)
+## 3. GD_AbilityContainer 测试用例 (修正版)
 func test_ability_container():
-	print("\n=== Testing AbilityContainer ===")
+	print("\n=== Testing GD_AbilityContainer ===")
 	
-	var container = AbilityContainer.new()
+	var container = GD_AbilityContainer.new()
 	add_child(container)  # 需要添加到场景树才能正确处理信号
 	
-	var ability1 = Ability.new()
+	var ability1 = GD_Ability.new()
 	ability1.ability_name = "Ability1"
 	
 	var ability2 = CustomAbility.new()
@@ -131,7 +131,7 @@ func test_ability_container():
 	
 	# 测试激活能力
 	var activate_result = container.try_activate("Ability1")
-	print_result("Activate ability", activate_result == Ability.AbilityEventType.ACTIVATED)
+	print_result("Activate ability", activate_result == GD_Ability.AbilityEventType.ACTIVATED)
 	print_result("Is active after activate", container.is_ability_active("Ability1") == true)
 	
 	# 测试冷却时间
@@ -155,7 +155,7 @@ func test_ability_container():
 	container.free()
 	
 	# 测试初始能力
-	var new_container = AbilityContainer.new()
+	var new_container = GD_AbilityContainer.new()
 	new_container.set_initial_abilities([ability1, ability2])
 	add_child(new_container)
 	
@@ -165,7 +165,7 @@ func quit():
 	print("Test end!")
 	self.queue_free()
 
-class CustomAbility extends Ability:
+class CustomAbility extends GD_Ability:
 	var cooldown: float = 0.0
 	var duration: float = 0.0
 

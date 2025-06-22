@@ -1,5 +1,5 @@
 # runtime_ability.gd
-class_name RuntimeAbility
+class_name GD_RuntimeAbility
 extends RefCounted
 
 # 运行时状态变化信号
@@ -20,96 +20,96 @@ enum AbilityState {
 	GRANTED = 16
 }
 
-var ability: Ability = null
-var container: AbilityContainer = null
+var ability: GD_Ability = null
+var container: GD_AbilityContainer = null
 var state: int = AbilityState.IDLE
 var cooldown_time: float = 0.0
 var duration_time: float = 0.0
 
-func activate() -> Ability.AbilityEventType:
+func activate() -> GD_Ability.AbilityEventType:
 	if ability == null or container == null:
-		return Ability.AbilityEventType.ERROR_ACTIVATING
+		return GD_Ability.AbilityEventType.ERROR_ACTIVATING
 	
 	if is_revoked():
-		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_REVOKED
+		return GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_REVOKED
 	
 	if is_blocked():
-		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_BLOCKED
+		return GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_BLOCKED
 	
-	if should_be_blocked() and block() == Ability.AbilityEventType.BLOCKED:
-		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE_DECIDED_TO_BLOCK
+	if should_be_blocked() and block() == GD_Ability.AbilityEventType.BLOCKED:
+		return GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE_DECIDED_TO_BLOCK
 	
 	if is_duration_active():
-		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_DURATION_ACTIVE
+		return GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_DURATION_ACTIVE
 	
 	if is_cooldown_active():
-		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_COOLING_DOWN
+		return GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE_IS_COOLING_DOWN
 	
 	if ability._can_be_activated(container, self):
 		ability._on_activate(container, self)
-		_set_state(Ability.AbilityEventType.ACTIVATED)
+		_set_state(GD_Ability.AbilityEventType.ACTIVATED)
 		emit_signal("activated")
 		
 		if trigger_duration():
-			return Ability.AbilityEventType.ACTIVATED_DURATION_STARTED
+			return GD_Ability.AbilityEventType.ACTIVATED_DURATION_STARTED
 		
 		if trigger_cooldown():
-			return Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED
+			return GD_Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED
 		
-		return Ability.AbilityEventType.ACTIVATED
+		return GD_Ability.AbilityEventType.ACTIVATED
 	else:
-		_set_state(Ability.AbilityEventType.REFUSED_TO_ACTIVATE)
-		return Ability.AbilityEventType.REFUSED_TO_ACTIVATE
+		_set_state(GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE)
+		return GD_Ability.AbilityEventType.REFUSED_TO_ACTIVATE
 
-func block() -> Ability.AbilityEventType:
+func block() -> GD_Ability.AbilityEventType:
 	if ability == null or container == null:
-		return Ability.AbilityEventType.ERROR_BLOCKING
+		return GD_Ability.AbilityEventType.ERROR_BLOCKING
 	
 	if not (state & AbilityState.GRANTED) == AbilityState.GRANTED:
-		return Ability.AbilityEventType.REFUSED_TO_BLOCK_IS_NOT_GRANTED
+		return GD_Ability.AbilityEventType.REFUSED_TO_BLOCK_IS_NOT_GRANTED
 	
 	if ability._can_be_blocked(container, self):
 		ability._on_block(container, self)
-		_set_state(Ability.AbilityEventType.BLOCKED)
+		_set_state(GD_Ability.AbilityEventType.BLOCKED)
 		emit_signal("blocked")
 		try_reset_cooldown()
 		try_reset_duration()
-		return Ability.AbilityEventType.BLOCKED
+		return GD_Ability.AbilityEventType.BLOCKED
 	else:
-		_set_state(Ability.AbilityEventType.REFUSED_TO_BLOCK)
-		return Ability.AbilityEventType.REFUSED_TO_BLOCK
+		_set_state(GD_Ability.AbilityEventType.REFUSED_TO_BLOCK)
+		return GD_Ability.AbilityEventType.REFUSED_TO_BLOCK
 
-func end() -> Ability.AbilityEventType:
+func end() -> GD_Ability.AbilityEventType:
 	if ability == null or container == null:
-		return Ability.AbilityEventType.ERROR_ENDING
+		return GD_Ability.AbilityEventType.ERROR_ENDING
 	
 	if (state & AbilityState.BLOCKED) == AbilityState.BLOCKED:
-		return Ability.AbilityEventType.REFUSED_TO_END_IS_BLOCKED
+		return GD_Ability.AbilityEventType.REFUSED_TO_END_IS_BLOCKED
 	
 	if not ((state & AbilityState.ACTIVE) == AbilityState.ACTIVE or (state & AbilityState.COOLING_DOWN) == AbilityState.COOLING_DOWN):
-		return Ability.AbilityEventType.REFUSED_TO_END_IS_COOLING_DOWN
+		return GD_Ability.AbilityEventType.REFUSED_TO_END_IS_COOLING_DOWN
 	
 	if (state & AbilityState.COOLING_DOWN) == AbilityState.COOLING_DOWN and not is_zero_approx(cooldown_time):
-		return Ability.AbilityEventType.REFUSED_TO_END
+		return GD_Ability.AbilityEventType.REFUSED_TO_END
 	
 	if not (state & AbilityState.GRANTED) == AbilityState.GRANTED:
-		return Ability.AbilityEventType.REFUSED_TO_END_IS_NOT_GRANTED
+		return GD_Ability.AbilityEventType.REFUSED_TO_END_IS_NOT_GRANTED
 	
 	if ability._can_be_ended(container, self):
 		ability._on_end(container, self)
-		_set_state(Ability.AbilityEventType.ENDED)
+		_set_state(GD_Ability.AbilityEventType.ENDED)
 		emit_signal("ended")
 		try_reset_cooldown()
 		try_reset_duration()
-		return Ability.AbilityEventType.ENDED
+		return GD_Ability.AbilityEventType.ENDED
 	else:
-		_set_state(Ability.AbilityEventType.REFUSED_TO_END)
-		return Ability.AbilityEventType.REFUSED_TO_END
+		_set_state(GD_Ability.AbilityEventType.REFUSED_TO_END)
+		return GD_Ability.AbilityEventType.REFUSED_TO_END
 
-func get_ability() -> Ability:
+func get_ability() -> GD_Ability:
 	return ability
 
-func get_container() -> AbilityContainer:
+func get_container() -> GD_AbilityContainer:
 	return container
 
 func get_cooldown() -> float:
@@ -118,21 +118,21 @@ func get_cooldown() -> float:
 func get_duration() -> float:
 	return ability._get_duration(container) if ability != null else 0.0
 
-func grant() -> Ability.AbilityEventType:
+func grant() -> GD_Ability.AbilityEventType:
 	if ability == null or container == null:
-		return Ability.AbilityEventType.ERROR_GRANTING
+		return GD_Ability.AbilityEventType.ERROR_GRANTING
 	
 	if (state & AbilityState.GRANTED) == AbilityState.GRANTED:
-		return Ability.AbilityEventType.REFUSED_TO_GRANT_ALREADY_GRANTED
+		return GD_Ability.AbilityEventType.REFUSED_TO_GRANT_ALREADY_GRANTED
 	
 	if ability._can_be_granted(container, self):
 		ability._on_grant(container, self)
-		_set_state(Ability.AbilityEventType.GRANTED)
+		_set_state(GD_Ability.AbilityEventType.GRANTED)
 		emit_signal("granted")
-		return Ability.AbilityEventType.GRANTED
+		return GD_Ability.AbilityEventType.GRANTED
 	else:
-		_set_state(Ability.AbilityEventType.REFUSED_TO_GRANT)
-		return Ability.AbilityEventType.REFUSED_TO_GRANT
+		_set_state(GD_Ability.AbilityEventType.REFUSED_TO_GRANT)
+		return GD_Ability.AbilityEventType.REFUSED_TO_GRANT
 
 func is_active() -> bool:
 	return (state & AbilityState.ACTIVE) == AbilityState.ACTIVE
@@ -155,31 +155,31 @@ func is_granted() -> bool:
 func is_revoked() -> bool:
 	return not (state & AbilityState.GRANTED) == AbilityState.GRANTED
 
-func revoke() -> Ability.AbilityEventType:
+func revoke() -> GD_Ability.AbilityEventType:
 	if ability == null or container == null:
-		return Ability.AbilityEventType.ERROR_REVOKING
+		return GD_Ability.AbilityEventType.ERROR_REVOKING
 	
 	if not (state & AbilityState.GRANTED) == AbilityState.GRANTED:
-		return Ability.AbilityEventType.REFUSED_TO_REVOKE_ALREADY_REVOKED
+		return GD_Ability.AbilityEventType.REFUSED_TO_REVOKE_ALREADY_REVOKED
 	
 	if ability._can_be_revoked(container, self):
 		ability._on_revoke(container, self)
-		_set_state(Ability.AbilityEventType.REVOKED)
+		_set_state(GD_Ability.AbilityEventType.REVOKED)
 		if not is_zero_approx(cooldown_time):
 			emit_signal("cooldown_end")
 		cooldown_time = 0.0
 		duration_time = 0.0
 		emit_signal("revoked")
-		return Ability.AbilityEventType.REVOKED
+		return GD_Ability.AbilityEventType.REVOKED
 	else:
-		_set_state(Ability.AbilityEventType.REFUSED_TO_REVOKE)
-		return Ability.AbilityEventType.REFUSED_TO_REVOKE
+		_set_state(GD_Ability.AbilityEventType.REFUSED_TO_REVOKE)
+		return GD_Ability.AbilityEventType.REFUSED_TO_REVOKE
 
-func set_ability(p_ability: Ability) -> void:
+func set_ability(p_ability: GD_Ability) -> void:
 	ability = p_ability
 	state = AbilityState.IDLE
 
-func set_container(p_container: AbilityContainer) -> void:
+func set_container(p_container: GD_AbilityContainer) -> void:
 	container = p_container
 	cooldown_time = 0.0
 
@@ -192,19 +192,19 @@ func should_be_blocked() -> bool:
 func should_be_ended() -> bool:
 	return ability._should_be_ended(container) if ability != null else true
 
-func unblock() -> Ability.AbilityEventType:
+func unblock() -> GD_Ability.AbilityEventType:
 	if ability == null or container == null:
-		return Ability.AbilityEventType.ERROR_UNBLOCKING
+		return GD_Ability.AbilityEventType.ERROR_UNBLOCKING
 	
 	if not (state & AbilityState.BLOCKED) == AbilityState.BLOCKED:
-		return Ability.AbilityEventType.REFUSED_TO_UNBLOCK_IS_NOT_BLOCKED
+		return GD_Ability.AbilityEventType.REFUSED_TO_UNBLOCK_IS_NOT_BLOCKED
 	
 	if ability._should_be_blocked(container):
-		return Ability.AbilityEventType.REFUSED_TO_UNBLOCK_SHOULD_BE_BLOCKED
+		return GD_Ability.AbilityEventType.REFUSED_TO_UNBLOCK_SHOULD_BE_BLOCKED
 	
-	_set_state(Ability.AbilityEventType.UNBLOCKED)
+	_set_state(GD_Ability.AbilityEventType.UNBLOCKED)
 	emit_signal("unblocked")
-	return Ability.AbilityEventType.UNBLOCKED
+	return GD_Ability.AbilityEventType.UNBLOCKED
 
 func handle_tick(delta: float) -> void:
 	if ability == null or container == null:
@@ -214,7 +214,7 @@ func handle_tick(delta: float) -> void:
 		ability._on_tick.call(delta, cooldown_time, container, self)
 		return
 	
-	if should_be_blocked() and block() == Ability.AbilityEventType.BLOCKED:
+	if should_be_blocked() and block() == GD_Ability.AbilityEventType.BLOCKED:
 		return
 	
 	if is_active() and is_duration_active():
@@ -249,7 +249,7 @@ func trigger_cooldown() -> bool:
 		if should_activate_cooldown:
 			cooldown_time = cooldown
 		
-		_set_state(Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED)
+		_set_state(GD_Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED)
 		emit_signal("cooldown_started")
 		return true
 	return false
@@ -278,36 +278,36 @@ func try_reset_duration() -> void:
 	if should_reset_duration:
 		duration_time = 0.0
 
-func _set_state(event_type: Ability.AbilityEventType) -> void:
+func _set_state(event_type: GD_Ability.AbilityEventType) -> void:
 	match event_type:
-		Ability.AbilityEventType.ACTIVATED:
+		GD_Ability.AbilityEventType.ACTIVATED:
 			state &= ~AbilityState.IDLE
 			state |= AbilityState.ACTIVE
-		Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED:
+		GD_Ability.AbilityEventType.ACTIVATED_COOLDOWN_STARTED:
 			state &= ~AbilityState.ACTIVE
 			state |= AbilityState.COOLING_DOWN
-		Ability.AbilityEventType.BLOCKED:
+		GD_Ability.AbilityEventType.BLOCKED:
 			state &= ~AbilityState.ACTIVE
 			state &= ~AbilityState.COOLING_DOWN
 			state &= ~AbilityState.IDLE
 			state |= AbilityState.BLOCKED
-		Ability.AbilityEventType.ENDED:
+		GD_Ability.AbilityEventType.ENDED:
 			state &= ~AbilityState.ACTIVE
 			state &= ~AbilityState.COOLING_DOWN
 			state |= AbilityState.IDLE
-		Ability.AbilityEventType.GRANTED:
+		GD_Ability.AbilityEventType.GRANTED:
 			state &= ~AbilityState.ACTIVE
 			state &= ~AbilityState.BLOCKED
 			state &= ~AbilityState.COOLING_DOWN
 			state |= AbilityState.IDLE
 			state |= AbilityState.GRANTED
-		Ability.AbilityEventType.REVOKED:
+		GD_Ability.AbilityEventType.REVOKED:
 			state &= ~AbilityState.ACTIVE
 			state &= ~AbilityState.BLOCKED
 			state &= ~AbilityState.COOLING_DOWN
 			state &= ~AbilityState.GRANTED
 			state &= ~AbilityState.IDLE
-		Ability.AbilityEventType.UNBLOCKED:
+		GD_Ability.AbilityEventType.UNBLOCKED:
 			state &= ~AbilityState.ACTIVE
 			state &= ~AbilityState.BLOCKED
 			state |= AbilityState.IDLE
