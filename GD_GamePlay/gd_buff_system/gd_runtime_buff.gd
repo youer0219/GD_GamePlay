@@ -19,7 +19,7 @@ func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 	if not new_buff or not new_container:
 		push_error("Buff or Container cannot be null!")
 		return
-		
+	
 	self.buff = new_buff
 	self.container = new_container
 	self.blackboard = new_buff.init_buff_blackboard.duplicate(true)
@@ -80,6 +80,9 @@ func can_remove_buff()->bool:
 
 func is_duration_active() -> bool:
 	return not is_zero_approx(duration_time)
+
+func should_remove_after_stack()->bool:
+	return buff.should_remove_after_stack()
 
 func _is_base_check_pass() -> bool:
 	if buff == null or container == null:
