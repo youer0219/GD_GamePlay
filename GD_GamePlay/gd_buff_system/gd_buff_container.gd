@@ -70,7 +70,7 @@ func add_buff(buff: GD_Buff) -> bool:
 		return false
 	elif not stack_runtime_buffs.is_empty():
 		for stack_runtime_buff:GD_RuntimeBuff in stack_runtime_buffs:
-			stack_runtime_buff.buff_refresh(buff)
+			stack_runtime_buff.buff_stack(buff)
 			if stack_runtime_buff.should_remove_after_stack():
 				return false
 	

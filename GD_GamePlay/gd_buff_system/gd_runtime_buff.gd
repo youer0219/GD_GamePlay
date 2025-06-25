@@ -14,6 +14,9 @@ var duration_time: float = 0.0:
 	set(value):
 		duration_time = max(0.0,value)
 var blackboard: Dictionary = {}
+var layer:int = 1:
+	set(value):
+		layer = clamp(value,0,buff.max_layers)
 
 func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 	if not new_buff or not new_container:
@@ -55,11 +58,11 @@ func buff_interval_trigger() -> void:
 	buff._on_buff_interval_trigger(container, self)
 	interval_triggered.emit()
 
-func buff_refresh(new_buff:GD_Buff) -> void:
+func buff_stack(new_buff:GD_Buff) -> void:
 	if not _is_base_check_pass() or not new_buff:
 		return
 	
-	buff._on_buff_refresh(container, self, new_buff)
+	buff._on_buff_stack(container, self, new_buff)
 	refreshed.emit()
 
 func buff_remove() -> void:
