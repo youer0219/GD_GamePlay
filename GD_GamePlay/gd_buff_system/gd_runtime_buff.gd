@@ -42,6 +42,7 @@ func buff_awake()->void:
 	if not _is_base_check_pass():
 		return
 	
+	state = BUFF_STATE.AWAKE
 	buff._on_buff_awake(container, self)
 	awake.emit()
 
@@ -51,6 +52,8 @@ func buff_start() -> void:
 	
 	if can_enable():
 		enable = true
+	
+	state = BUFF_STATE.EXIST
 	buff._on_buff_start(container, self)
 	started.emit()
 
@@ -81,6 +84,8 @@ func buff_remove() -> void:
 	if not _is_base_check_pass():
 		return
 	
+	enable = false
+	state = BUFF_STATE.REMOVE
 	buff._on_buff_remove(container, self)
 	removed.emit()
 

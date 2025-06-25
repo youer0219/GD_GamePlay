@@ -121,16 +121,18 @@ func test_basic_lifecycle() -> bool:
 	
 	# 测试添加buff
 	passed = print_result("添加buff", container.add_buff(buff), "应成功添加buff") and passed
-	
+	var runtime = container.get_runtime_buff(buff)
+	passed = print_result("验证buff成功添加后本帧内状态", runtime.state == GD_RuntimeBuff.BUFF_STATE.AWAKE, "应该为AWAKE状态") and passed
+	passed = print_result("buff添加后本帧内状态默认不生效", !runtime.enable, "不应生效") and passed
 	# 模拟物理过程处理
 	container._physics_process(0.0)
 	
-	# 获取并验证运行时buff实例
-	var runtime = container.get_runtime_buff(buff)
+	# 验证运行时buff实例
 	passed = print_result("运行时buff存在", runtime != null, "运行时buff实例应为非空") and passed
 	passed = print_result("awake回调", buff.awake_count == 1, "awake回调未触发") and passed
 	passed = print_result("start回调", buff.start_count == 1, "start回调未触发") and passed
-	
+	passed = print_result("验证buff添加后状态", runtime.state == GD_RuntimeBuff.BUFF_STATE.EXIST, "应该为EXIST状态") and passed
+	passed = print_result("buff添加后状态自动生效", runtime.enable, "应生效") and passed
 	# 模拟过程调用
 	container._physics_process(0.5)
 	passed = print_result("process回调", buff.process_count >= 1, "process回调未触发") and passed
@@ -142,6 +144,8 @@ func test_basic_lifecycle() -> bool:
 	# 验证buff已被完全移除
 	var removed_runtime = container.get_runtime_buff(buff)
 	passed = print_result("移除后buff不存在", removed_runtime == null, "移除后运行时buff应为空") and passed
+	passed = print_result("移除buff后buff自动失效", !runtime.enable, "应失效") and passed
+	passed = print_result("验证buff添加后状态", runtime.state == GD_RuntimeBuff.BUFF_STATE.REMOVE, "应该为REMOVE状态") and passed
 	
 	container.queue_free()
 	return passed
