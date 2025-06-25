@@ -1,0 +1,30 @@
+# GD_GamePlay
+
+目前通过GDS实现了能力系统和BUFF系统。属性系统我认为[godot_gameplay_attributes](https://github.com/OctoD/godot_gameplay_attributes)已经满足需求且使用C++实现，性能优秀，暂无计划。
+
+警告：未经过项目测试。未有性能测试。
+
+## Ability System
+
+这里主要仿照了[godot-gameplay-abilities](https://github.com/OctoD/godot-gameplay-abilities)实现。原本实现为C++语言。
+
+使用GDS版本的优势在于：
+- 便于直接理解（虽然，原版核心源码只有一个文件，借助AI也可以理解逻辑）
+- 极强的扩展性
+- 快速验证功能后可以直接转为原版。我会尽可能保持与原版一致的行为。
+
+PS:其实原版就是GDS转C++，这是一个轮回哈哈。为了避免类名冲突，我都加了前缀`GD_`。
+
+## Buff System
+
+目标是实现[明日方舟的BUFF效果](https://prts.wiki/w/BUFF#)
+
+生命周期等参考了[Unity-Buff-System](https://github.com/NoSLoofah/)和[如何实现一个强大的MMO技能系统——BUFF](https://zhuanlan.zhihu.com/p/150812545)
+
+
+目前实现了基本的生命周期管理、冲突机制、叠加机制等，其他机制还在实现中
+
+
+## MIT协议
+
+本项目遵守MIT协议
