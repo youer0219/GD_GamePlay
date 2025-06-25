@@ -8,15 +8,25 @@ signal refreshed(runtime_buff: GD_RuntimeBuff)
 signal interval_triggered(runtime_buff: GD_RuntimeBuff)
 signal removed(runtime_buff: GD_RuntimeBuff)
 
+enum BUFF_STATE {
+	INIT,
+	AWAKE,
+	EXIST,
+	REMOVE,
+}
+
 var buff: GD_Buff = null
 var container: GD_BuffContainer = null
 var duration_time: float = 0.0:
 	set(value):
 		duration_time = max(0.0,value)
-var blackboard: Dictionary = {}
+var state:BUFF_STATE = BUFF_STATE.INIT
+var enable:bool = false:set = _set_enable
+var higher_buff_num:int = 0:set = _set_higher_buff_num
 var layer:int = 1:
 	set(value):
 		layer = clamp(value,0,buff.max_layers)
+var blackboard: Dictionary = {}
 
 func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 	if not new_buff or not new_container:
@@ -31,14 +41,16 @@ func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 func buff_awake()->void:
 	if not _is_base_check_pass():
 		return
-		
+	
 	buff._on_buff_awake(container, self)
 	awake.emit()
 
 func buff_start() -> void:
 	if not _is_base_check_pass():
 		return
-		
+	
+	if can_enable():
+		enable = true
 	buff._on_buff_start(container, self)
 	started.emit()
 
@@ -58,11 +70,11 @@ func buff_interval_trigger() -> void:
 	buff._on_buff_interval_trigger(container, self)
 	interval_triggered.emit()
 
-func buff_stack(new_buff:GD_Buff) -> void:
-	if not _is_base_check_pass() or not new_buff:
+func buff_stack(new_runtime_buff:GD_RuntimeBuff) -> void:
+	if not _is_base_check_pass() or not new_runtime_buff:
 		return
 	
-	buff._on_buff_stack(container, self, new_buff)
+	buff._on_buff_stack(container, self, new_runtime_buff)
 	refreshed.emit()
 
 func buff_remove() -> void:
@@ -72,6 +84,12 @@ func buff_remove() -> void:
 	buff._on_buff_remove(container, self)
 	removed.emit()
 
+func exist_buff_enable()->void:
+	buff._on_exist_buff_enable(container,self)
+
+func exist_buff_disenable()->void:
+	buff._on_exist_buff_disenable(container,self)
+
 func can_stack_with(other_buff: GD_Buff) -> bool:
 	return buff.can_stack_with(other_buff)
 
@@ -80,6 +98,9 @@ func conflicts_with(other_buff: GD_Buff) -> bool:
 
 func can_remove_buff()->bool:
 	return buff.can_remove_buff(container,self)
+
+func can_enable()->bool:
+	return higher_buff_num == 0
 
 func is_duration_active() -> bool:
 	return not is_zero_approx(duration_time)
@@ -92,3 +113,18 @@ func _is_base_check_pass() -> bool:
 		push_error("Buff or Container is null!")
 		return false
 	return true
+
+func _set_enable(value:bool):
+	if enable == value:
+		return
+	if state == BUFF_STATE.EXIST:
+		if value:
+			exist_buff_enable()
+		else:
+			exist_buff_disenable()
+	enable = value
+
+func _set_higher_buff_num(new_num:int):
+	higher_buff_num = max(new_num,0)
+	if higher_buff_num == 0 and can_enable():
+		enable = true

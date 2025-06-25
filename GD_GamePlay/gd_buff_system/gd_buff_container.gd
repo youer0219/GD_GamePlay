@@ -68,16 +68,18 @@ func add_buff(buff: GD_Buff) -> bool:
 	
 	if not conflict_runtime_buffs.is_empty():
 		return false
-	elif not stack_runtime_buffs.is_empty():
+	
+	var runtime_buff = buff.get_runtime_instance(self)
+	
+	if not stack_runtime_buffs.is_empty():
 		for stack_runtime_buff:GD_RuntimeBuff in stack_runtime_buffs:
-			stack_runtime_buff.buff_stack(buff)
+			stack_runtime_buff.buff_stack(runtime_buff)
 			if stack_runtime_buff.should_remove_after_stack():
 				return false
 	
 	if has_buff(buff):
 		return false
 	
-	var runtime_buff = buff.get_runtime_instance(self)
 	pending_add_buffs[buff.buff_name] = runtime_buff
 	runtime_buff.buff_awake()
 	

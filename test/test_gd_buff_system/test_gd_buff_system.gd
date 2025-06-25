@@ -19,11 +19,11 @@ class Test_Buff extends GD_Buff:
 	func _on_buff_process(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _delta: float) -> void:
 		process_count += 1
 	
-	func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, new_buff: GD_Buff) -> void:
-		super(container, runtime_buff, new_buff)
+	func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, new_runtime_buff: GD_RuntimeBuff) -> void:
+		super(container, runtime_buff, new_runtime_buff)
 		stack_count += 1
 	
-	func _on_layer_change(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _new_buff: GD_Buff, _is_over: bool):
+	func _on_layer_change(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _new_runtime_buff: GD_RuntimeBuff, _is_over: bool):
 		layer_change_count += 1
 	
 	func _on_buff_remove(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
@@ -100,8 +100,8 @@ func run_tests() -> void:
 	all_passed = test_stack_type_handling() and all_passed
 	all_passed = test_buff_awake_and_start() and all_passed
 	all_passed = test_layer_handling() and all_passed
-	#all_passed = test_priority_handling() and all_passed
 	all_passed = test_blackboard() and all_passed
+	all_passed = test_priority_handling() and all_passed
 	
 	if all_passed:
 		print_rich("[color=green]===== 所有测试通过! =====[/color]")
@@ -355,35 +355,93 @@ func test_layer_handling() -> bool:
 	container.queue_free()
 	return passed
 
-#func test_priority_handling() -> bool:
-	#print("\n[测试优先级处理]")
-	#var container = GD_BuffContainer.new()
-	#add_child(container)
-	#var passed = true
-	#
-	## 创建优先级buff
-	#var priority_buff = Priority_Buff.new()
-	#priority_buff.buff_name = "PriorityTest"
-	#priority_buff.default_duration = 5.0
-	#
-	## 添加第一个
-	#passed = print_result("添加第一个优先级buff", container.add_buff(priority_buff), "应成功添加") and passed
-	#container._physics_process(0.0)
-	#
-	## 添加第二个（应该被添加）
-	#var priority_buff2 = Priority_Buff.new()
-	#priority_buff2.buff_name = "PriorityTest"
-	#priority_buff2.default_duration = 3.0
-	#passed = print_result("添加第二个优先级buff", container.add_buff(priority_buff2), "应成功添加") and passed
-	#container._physics_process(0.0)
-	#
-	## 验证两个buff都存在
-	#var buffs = container.get_runtime_buffs()
-	#passed = print_result("两个优先级buff存在", buffs.size() == 2, "应存在两个优先级buff") and passed
-	#passed = print_result("stack回调未触发", priority_buff.stack_count == 0, "优先级类型不应触发stack回调") and passed
-	#
-	#container.queue_free()
-	#return passed
+func test_priority_handling() -> bool:
+	print("\n[测试优先级处理]")
+	var container = GD_BuffContainer.new()
+	add_child(container)
+	var passed = true
+	
+	# 创建不同优先级的buff
+	var high_priority = Priority_Buff.new()
+	high_priority.buff_name = "HighPriority"
+	high_priority.default_priority = 10
+	high_priority.default_duration = 5.0
+	
+	var medium_priority = Priority_Buff.new()
+	medium_priority.buff_name = "MediumPriority"
+	medium_priority.default_priority = 5
+	medium_priority.default_duration = 5.0
+	
+	var low_priority = Priority_Buff.new()
+	low_priority.buff_name = "LowPriority"
+	low_priority.default_priority = 1
+	low_priority.default_duration = 5.0
+	
+	# 1. 添加低优先级buff
+	passed = print_result("添加低优先级buff", container.add_buff(low_priority), "应成功添加") and passed
+	container._physics_process(0.0)
+	var low_runtime = container.get_runtime_buff(low_priority)
+	passed = print_result("低优先级启用状态", low_runtime.enable, "初始应启用") and passed
+	
+	# 2. 添加高优先级buff
+	passed = print_result("添加高优先级buff", container.add_buff(high_priority), "应成功添加") and passed
+	container._physics_process(0.0)
+	var high_runtime = container.get_runtime_buff(high_priority)
+	
+	# 验证状态变化
+	passed = print_result("高优先级启用", high_runtime.enable, "高优先级应启用") and passed
+	passed = print_result("低优先级禁用", !low_runtime.enable, "低优先级应禁用") and passed
+	passed = print_result("低优先级higher_buff_num", low_runtime.higher_buff_num == 1, "应有1个更高优先级buff") and passed
+	
+	# 3. 添加中优先级buff
+	passed = print_result("添加中优先级buff", container.add_buff(medium_priority), "应成功添加") and passed
+	container._physics_process(0.0)
+	var medium_runtime = container.get_runtime_buff(medium_priority)
+	
+	# 验证状态变化
+	passed = print_result("中优先级禁用", !medium_runtime.enable, "中优先级应禁用") and passed
+	passed = print_result("高优先级higher_buff_num", high_runtime.higher_buff_num == 0, "应无更高优先级buff") and passed
+	passed = print_result("中优先级higher_buff_num", medium_runtime.higher_buff_num == 1, "应有1个更高优先级buff") and passed
+	
+	# 4. 移除高优先级buff
+	passed = print_result("移除高优先级", container.remove_buff(high_priority), "应成功移除") and passed
+	container._physics_process(0.0)
+	
+	# 验证状态变化
+	passed = print_result("中优先级启用", medium_runtime.enable, "中优先级应启用") and passed
+	passed = print_result("低优先级仍禁用", !low_runtime.enable, "低优先级应仍禁用") and passed
+	passed = print_result("低优先级higher_buff_num更新", low_runtime.higher_buff_num == 1, "应有1个更高优先级buff") and passed
+	
+	# 5. 测试优先级相等的情况
+	var equal_priority1 = Priority_Buff.new()
+	equal_priority1.buff_name = "EqualPriority1"
+	equal_priority1.override_buff_name = "EqualPriority"
+	equal_priority1.default_priority = 7
+	equal_priority1.default_duration = 5.0
+	
+	var equal_priority2 = Priority_Buff.new()
+	equal_priority2.buff_name = "EqualPriority2"
+	equal_priority2.override_buff_name = "EqualPriority"
+	equal_priority2.default_priority = 7
+	equal_priority2.default_duration = 5.0
+	
+	# 添加相同优先级的buff
+	container.add_buff(equal_priority1)
+	container.add_buff(equal_priority2)
+	container._physics_process(0.0)
+	
+	var equal_runtime1 = container.get_runtime_buff(equal_priority1)
+	var equal_runtime2 = container.get_runtime_buff(equal_priority2)
+	
+	# 验证相同优先级互不影响
+	passed = print_result("相同优先级1启用", equal_runtime1.enable, "应启用") and passed
+	passed = print_result("相同优先级2启用", equal_runtime2.enable, "应启用") and passed
+	passed = print_result("相同优先级higher_buff_num", 
+		equal_runtime1.higher_buff_num == 0 && equal_runtime2.higher_buff_num == 0, 
+		"应无更高优先级buff") and passed
+	
+	container.queue_free()
+	return passed
 
 func test_blackboard() -> bool:
 	print("\n[测试黑板功能]")
