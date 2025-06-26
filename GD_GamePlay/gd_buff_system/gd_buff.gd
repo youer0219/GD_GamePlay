@@ -56,31 +56,23 @@ func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, n
 			## 仅保留最早一个同覆写名的Buff。不需要做任何事情。
 			pass
 		STACK_TYPE.PRIORITY:
-			## 默认优先级机制
-			## 如果新buff优先级比自己高，执行以下操作：
-			## 1.使自己失效；2.更新higher-buff数量；3.订阅buff的移除信号
-			## 如果新buff优先级比自己低，对新buff做上面的操作
-			var new_runtime_buff_priority := new_runtime_buff.buff.get_priority()
-			if new_runtime_buff_priority > get_priority():
-				runtime_buff.higher_buff_num += 1
-				runtime_buff.enable = false
-				var weak_runtime_buff = weakref(runtime_buff)
-				new_runtime_buff.removed.connect(
-					func():
-						var target = weak_runtime_buff.get_ref()
-						if target:
-							target.higher_buff_num -= 1
-				, CONNECT_ONE_SHOT | CONNECT_REFERENCE_COUNTED)
-			elif new_runtime_buff_priority < get_priority():
-				new_runtime_buff.higher_buff_num += 1
-				new_runtime_buff.enable = false
-				var weak_runtime_buff = weakref(new_runtime_buff)
-				runtime_buff.removed.connect(
-					func():
-						var target = weak_runtime_buff.get_ref()
-						if target:
-							target.higher_buff_num -= 1
-				, CONNECT_ONE_SHOT | CONNECT_REFERENCE_COUNTED)
+			## 优先级机制：同级不操作。低级buff失效、更新higher-buff数量、订阅高级buff的移除信号。
+			var low_priority_runtimebuff:GD_RuntimeBuff
+			var higher_priority_runtimebuff:GD_RuntimeBuff
+			if new_runtime_buff.buff.get_priority() == get_priority():
+				return
+			else:
+				low_priority_runtimebuff = runtime_buff if new_runtime_buff.buff.get_priority() > get_priority() else new_runtime_buff
+				higher_priority_runtimebuff = runtime_buff if new_runtime_buff.buff.get_priority() < get_priority() else new_runtime_buff
+			low_priority_runtimebuff.higher_buff_num += 1
+			low_priority_runtimebuff.enable = false
+			var weak_runtime_buff = weakref(low_priority_runtimebuff)
+			higher_priority_runtimebuff.removed.connect(
+				func():
+					var target = weak_runtime_buff.get_ref()
+					if target:
+						target.higher_buff_num -= 1
+			, CONNECT_ONE_SHOT | CONNECT_REFERENCE_COUNTED)
 
 func _on_layer_change(_container: GD_BuffContainer,_runtime_buff: GD_RuntimeBuff,_new_runtime_buff: GD_RuntimeBuff,_is_over:bool):
 	pass
