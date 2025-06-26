@@ -26,6 +26,8 @@ var higher_buff_num:int = 0:set = _set_higher_buff_num
 var layer:int = 1:
 	set(value):
 		layer = clamp(value,0,buff.max_layers)
+var curr_interval_time := 0.0
+var curr_interval_num := 0
 var blackboard: Dictionary = {}
 
 func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
@@ -36,7 +38,8 @@ func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 	self.buff = new_buff
 	self.container = new_container
 	self.blackboard = new_buff.init_buff_blackboard.duplicate(true)
-	self.duration_time = buff.get_duration()
+	self.duration_time = new_buff.get_duration()
+	self.curr_interval_num = new_buff.get_default_interval_num()
 
 func buff_awake()->void:
 	if not _is_base_check_pass():
@@ -50,19 +53,16 @@ func buff_start() -> void:
 	if not _is_base_check_pass():
 		return
 	
-	if can_enable():
-		enable = true
-	
 	state = BUFF_STATE.EXIST
 	buff._on_buff_start(container, self)
 	started.emit()
+	
+	if can_enable():
+		enable = true
 
 func buff_process(delta: float) -> void:
 	if not _is_base_check_pass():
 		return
-	
-	# 处理持续时间
-	duration_time = duration_time - delta
 	
 	buff._on_buff_process(container, self, delta)
 

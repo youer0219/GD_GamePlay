@@ -14,6 +14,9 @@ enum STACK_TYPE {
 @export var init_buff_blackboard: Dictionary = {}
 @export var default_duration: float = 0.0
 @export var default_priority: int = 0
+@export var default_interval_time:float = 0.0
+@export var default_interval_num:int = 0
+@export var is_interval_num_inf:bool = false
 @export var stack_type:STACK_TYPE = STACK_TYPE.PRIORITY
 @export var max_layers:int = 1
 
@@ -23,8 +26,16 @@ func _on_buff_awake(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff)
 func _on_buff_start(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
 
-func _on_buff_process(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _delta: float) -> void:
-	pass
+func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, delta: float) -> void:
+	
+	runtime_buff.duration_time -= delta
+	
+	if runtime_buff.enable and (runtime_buff.curr_interval_num > 0 or is_interval_num_inf):
+		runtime_buff.curr_interval_time += delta
+		if runtime_buff.curr_interval_time >= get_interval_time():
+			runtime_buff.curr_interval_num = max(0,runtime_buff.curr_interval_num - 1)
+			runtime_buff.curr_interval_time = 0.0
+			_on_buff_interval_trigger(container,runtime_buff)
 
 func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, new_runtime_buff: GD_RuntimeBuff) -> void:
 	match stack_type:
@@ -74,9 +85,8 @@ func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, n
 func _on_layer_change(_container: GD_BuffContainer,_runtime_buff: GD_RuntimeBuff,_new_runtime_buff: GD_RuntimeBuff,_is_over:bool):
 	pass
 
-# 暂时不实现
-#func _on_buff_interval_trigger(_container: BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
-	#pass
+func _on_buff_interval_trigger(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
+	pass
 
 func _on_buff_remove(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
@@ -92,6 +102,12 @@ func get_duration()->float:
 
 func get_priority()->int:
 	return default_priority 
+
+func get_interval_time()->float:
+	return default_interval_time
+
+func get_default_interval_num()->int:
+	return default_interval_num
 
 func get_runtime_instance(container: GD_BuffContainer) -> GD_RuntimeBuff:
 	return GD_RuntimeBuff.new(self, container)

@@ -13,10 +13,12 @@ class Test_Buff extends GD_Buff:
 	func _on_buff_awake(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 		awake_count += 1
 	
-	func _on_buff_start(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
+	func _on_buff_start(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff) -> void:
+		super(container,runtime_buff)
 		start_count += 1
 	
-	func _on_buff_process(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _delta: float) -> void:
+	func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, delta: float) -> void:
+		super(container,runtime_buff,delta)
 		process_count += 1
 	
 	func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, new_runtime_buff: GD_RuntimeBuff) -> void:
@@ -29,8 +31,8 @@ class Test_Buff extends GD_Buff:
 	func _on_buff_remove(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 		remove_count += 1
 	
-	func get_duration() -> float:
-		return default_duration
+	func _on_buff_interval_trigger(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
+		interval_count += 1
 
 # 层叠测试效果
 class Stack_Buff extends Test_Buff:
@@ -102,6 +104,7 @@ func run_tests() -> void:
 	all_passed = test_layer_handling() and all_passed
 	all_passed = test_blackboard() and all_passed
 	all_passed = test_priority_handling() and all_passed
+	all_passed = test_interval_processing() and all_passed
 	
 	if all_passed:
 		print_rich("[color=green]===== 所有测试通过! =====[/color]")
@@ -473,6 +476,129 @@ func test_blackboard() -> bool:
 	passed = print_result("黑板修改", 
 		runtime.blackboard.get("counter") == 5 and runtime.blackboard.get("message") == "world",
 		"黑板修改未保存") and passed
+	
+	container.queue_free()
+	return passed
+
+func test_interval_processing() -> bool:
+	print("\n[测试间隔处理]")
+	var container = GD_BuffContainer.new()
+	add_child(container)
+	var passed = true
+	
+	# 1. 测试有限间隔次数
+	var finite_buff = Test_Buff.new()
+	finite_buff.buff_name = "FiniteIntervalTest"
+	finite_buff.default_duration = 3.0
+	finite_buff.default_interval_time = 1.0  # 每秒触发一次
+	finite_buff.default_interval_num = 2      # 最多触发2次
+	finite_buff.is_interval_num_inf = false   # 明确设置有限次数
+	
+	container.add_buff(finite_buff)
+	container._physics_process(0.0)  # 处理添加
+	
+	var runtime = container.get_runtime_buff(finite_buff)
+	
+	# 验证初始状态
+	passed = print_result("有限间隔-初始间隔计时", is_equal_approx(runtime.curr_interval_time, 0.0), 
+						 "初始间隔时间应为0.0") and passed
+	passed = print_result("有限间隔-初始间隔计数", runtime.curr_interval_num == 2, 
+						 "初始间隔计数应为2") and passed
+	
+	# 模拟0.5秒 - 不应触发
+	container._physics_process(0.5)
+	passed = print_result("有限间隔-0.5秒后间隔未触发", finite_buff.interval_count == 0, 
+						 "间隔触发过早") and passed
+	
+	# 模拟1.0秒 - 应触发第一次
+	container._physics_process(0.5)  # 累计1.0秒
+	passed = print_result("有限间隔-1.0秒后触发第一次", finite_buff.interval_count == 1, 
+						 "第一次间隔未触发") and passed
+	passed = print_result("有限间隔-间隔计数减少", runtime.curr_interval_num == 1, 
+						 "间隔计数应减少至1") and passed
+	passed = print_result("有限间隔-间隔计时器重置", is_equal_approx(runtime.curr_interval_time, 0.0), 
+						 "间隔计时器未重置") and passed
+	
+	# 模拟1.5秒 - 不应触发
+	container._physics_process(0.5)  # 累计1.5秒
+	passed = print_result("有限间隔-1.5秒后无触发", finite_buff.interval_count == 1, 
+						 "额外触发") and passed
+	
+	# 模拟2.0秒 - 应触发第二次
+	container._physics_process(0.5)  # 累计2.0秒
+	passed = print_result("有限间隔-2.0秒后触发第二次", finite_buff.interval_count == 2, 
+						 "第二次间隔未触发") and passed
+	passed = print_result("有限间隔-间隔计数减少", runtime.curr_interval_num == 0, 
+						 "间隔计数应减少至0") and passed
+	
+	# 模拟2.5秒 - 不应触发（达到最大间隔次数）
+	container._physics_process(0.5)  # 累计2.5秒
+	passed = print_result("有限间隔-2.5秒后无触发（达到上限）", finite_buff.interval_count == 2, 
+						 "超过最大间隔次数触发") and passed
+	
+	# 模拟3.0秒 - buff应自动移除
+	container._physics_process(0.5)  # 累计3.0秒
+	passed = print_result("有限间隔-3.0秒后buff移除", container.get_runtime_buff(finite_buff) == null, 
+						 "未自动移除") and passed
+	passed = print_result("有限间隔-移除回调", finite_buff.remove_count == 1, 
+						 "移除回调未触发") and passed
+	
+	# 2. 测试无限间隔次数
+	var infinite_buff = Test_Buff.new()
+	infinite_buff.buff_name = "InfiniteIntervalTest"
+	infinite_buff.default_duration = 3.0
+	infinite_buff.default_interval_time = 0.5  # 每0.5秒触发一次
+	infinite_buff.is_interval_num_inf = true   # 无限次数
+	
+	container.add_buff(infinite_buff)
+	container._physics_process(0.0)  # 处理添加
+	
+	runtime = container.get_runtime_buff(infinite_buff)
+	
+	# 验证初始状态
+	passed = print_result("无限间隔-初始间隔计数", runtime.curr_interval_num == 0, 
+						 "初始间隔计数应为0") and passed
+	
+	# 模拟0.5秒 - 应触发第一次
+	container._physics_process(0.5)
+	passed = print_result("无限间隔-0.5秒后触发第一次", infinite_buff.interval_count == 1, 
+						 "第一次间隔未触发") and passed
+	
+	# 模拟1.0秒 - 应触发第二次
+	container._physics_process(0.5)  # 累计1.0秒
+	passed = print_result("无限间隔-1.0秒后触发第二次", infinite_buff.interval_count == 2, 
+						 "第二次间隔未触发") and passed
+	
+	# 模拟1.5秒 - 应触发第三次
+	container._physics_process(0.5)  # 累计1.5秒
+	passed = print_result("无限间隔-1.5秒后触发第三次", infinite_buff.interval_count == 3, 
+						 "第三次间隔未触发") and passed
+	
+	# 模拟3.0秒 - buff应自动移除
+	container._physics_process(1.5)  # 累计3.0秒
+	passed = print_result("无限间隔-3.0秒后buff移除", container.get_runtime_buff(infinite_buff) == null, 
+						 "未自动移除") and passed
+	passed = print_result("无限间隔-移除回调", infinite_buff.remove_count == 1, 
+						 "移除回调未触发") and passed
+	
+	# 3. 测试间隔时间小于delta的情况
+	var small_interval_buff = Test_Buff.new()
+	small_interval_buff.buff_name = "SmallIntervalTest"
+	small_interval_buff.default_duration = 1.0
+	small_interval_buff.default_interval_time = 0.1  # 间隔时间小于delta
+	small_interval_buff.default_interval_num = 10
+	small_interval_buff.is_interval_num_inf = false
+	
+	container.add_buff(small_interval_buff)
+	container._physics_process(0.0)  # 处理添加
+	
+	# 模拟一次物理过程（delta=0.5秒），最多触发一次
+	container._physics_process(0.5)
+	var small_runtime = container.get_runtime_buff(small_interval_buff)
+	passed = print_result("小间隔-0.5秒后触发次数", small_interval_buff.interval_count == 1, 
+						 "应为%d次，实际%d次" % [1, small_interval_buff.interval_count]) and passed
+	passed = print_result("小间隔-剩余间隔次数", small_runtime.curr_interval_num == (10 - 1), 
+						 "应为%d次，实际%d次" % [10 - 1, small_runtime.curr_interval_num]) and passed
 	
 	container.queue_free()
 	return passed
