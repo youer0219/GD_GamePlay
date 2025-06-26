@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		if runtime_buff.can_remove_buff():
 			should_remove_buffs.append(runtime_buff)
 	for should_remove_buff in should_remove_buffs:
-		_remove_runtime_buff(should_remove_buff)
+		remove_runtime_buff(should_remove_buff)
 
 func _on_buff_awake(runtime_buff: GD_RuntimeBuff) -> void:
 	buff_awake.emit(runtime_buff)
@@ -87,9 +87,9 @@ func add_buff(buff: GD_Buff) -> bool:
 
 func remove_buff(buff: GD_Buff) -> bool:
 	var runtime_buff:GD_RuntimeBuff = get_runtime_buff(buff)
-	return _remove_runtime_buff(runtime_buff)
+	return remove_runtime_buff(runtime_buff)
 
-func _remove_runtime_buff(runtime_buff:GD_RuntimeBuff)->bool:
+func remove_runtime_buff(runtime_buff:GD_RuntimeBuff)->bool:
 	if runtime_buff == null:
 		push_error("Attempted to remove unexisting buff")
 		return false

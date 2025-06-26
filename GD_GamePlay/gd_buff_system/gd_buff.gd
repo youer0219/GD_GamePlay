@@ -13,6 +13,7 @@ enum STACK_TYPE {
 @export var override_buff_name:StringName
 @export var init_buff_blackboard: Dictionary = {}
 @export var default_duration: float = 0.0
+@export var is_default_duration_inf:bool = false
 @export var default_priority: int = 0
 @export var default_interval_time:float = 0.0
 @export var default_interval_num:int = 0
@@ -42,8 +43,7 @@ func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, n
 		STACK_TYPE.STACK:
 			## 层数叠加
 			var is_over:bool = runtime_buff.layer == max_layers
-			if not is_over:
-				runtime_buff.layer += 1
+			runtime_buff.layer += 1 if not is_over else 0
 			_on_layer_change(container,runtime_buff,new_runtime_buff,is_over)
 		STACK_TYPE.REFRESH:
 			## 延长持续时间至MAX(已存在Buff剩余持续时间，新Buff持续时间)
@@ -98,7 +98,7 @@ func _on_exist_buff_disenable(_container: GD_BuffContainer, _runtime_buff: GD_Ru
 	pass
 
 func get_duration()->float:
-	return default_duration
+	return default_duration if not is_default_duration_inf else INF
 
 func get_priority()->int:
 	return default_priority 
@@ -106,6 +106,7 @@ func get_priority()->int:
 func get_interval_time()->float:
 	return default_interval_time
 
+## int类型不支持INF。如有需求，请检查其is_interval_num_inf属性。
 func get_default_interval_num()->int:
 	return default_interval_num
 
