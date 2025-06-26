@@ -20,6 +20,7 @@ enum STACK_TYPE {
 @export var is_interval_num_inf:bool = false
 @export var stack_type:STACK_TYPE = STACK_TYPE.PRIORITY
 @export var max_layers:int = 1
+@export var is_layers_exhausted:bool = false
 
 func _on_buff_awake(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
@@ -30,6 +31,9 @@ func _on_buff_start(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff)
 func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, delta: float) -> void:
 	
 	runtime_buff.duration_time -= delta
+	
+	if not runtime_buff.is_duration_active():
+		_on_buff_time_end(container,runtime_buff)
 	
 	if runtime_buff.enable and (runtime_buff.curr_interval_num > 0 or is_interval_num_inf):
 		runtime_buff.curr_interval_time += delta
@@ -44,7 +48,7 @@ func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, n
 			## 层数叠加
 			var is_over:bool = runtime_buff.layer == max_layers
 			runtime_buff.layer += 1 if not is_over else 0
-			_on_layer_change(container,runtime_buff,new_runtime_buff,is_over)
+			_on_stack_layer_change(container,runtime_buff,new_runtime_buff,is_over)
 		STACK_TYPE.REFRESH:
 			## 延长持续时间至MAX(已存在Buff剩余持续时间，新Buff持续时间)
 			## TODO: 未来get_duration可能加入容器参数。请谨慎考虑。
@@ -74,11 +78,20 @@ func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, n
 						target.higher_buff_num -= 1
 			, CONNECT_ONE_SHOT | CONNECT_REFERENCE_COUNTED)
 
-func _on_layer_change(_container: GD_BuffContainer,_runtime_buff: GD_RuntimeBuff,_new_runtime_buff: GD_RuntimeBuff,_is_over:bool):
+func _on_stack_layer_change(_container: GD_BuffContainer,_runtime_buff: GD_RuntimeBuff,_new_runtime_buff: GD_RuntimeBuff,_is_over:bool):
 	pass
 
 func _on_buff_interval_trigger(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
+
+func _on_buff_time_end(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff):
+	if stack_type == STACK_TYPE.STACK:
+		if is_layers_exhausted:
+			runtime_buff.layer = 0
+		else:
+			runtime_buff.layer -= 1
+			if runtime_buff.layer > 0:
+				runtime_buff.duration_time = get_duration()
 
 func _on_buff_remove(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass

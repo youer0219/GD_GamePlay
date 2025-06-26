@@ -25,7 +25,7 @@ class Test_Buff extends GD_Buff:
 		super(container, runtime_buff, new_runtime_buff)
 		stack_count += 1
 	
-	func _on_layer_change(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _new_runtime_buff: GD_RuntimeBuff, _is_over: bool):
+	func _on_stack_layer_change(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff, _new_runtime_buff: GD_RuntimeBuff, _is_over: bool):
 		layer_change_count += 1
 	
 	func _on_buff_remove(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
@@ -358,6 +358,35 @@ func test_layer_handling() -> bool:
 	container._physics_process(0.0)
 	passed = print_result("超过最大层数", runtime.layer == 3, "层数不应超过3") and passed
 	passed = print_result("层数变更回调(is_over)", stack_buff.layer_change_count == 3, "层数变更回调未触发") and passed
+	
+	# 测试时间耗尽时消耗层数刷新时间
+	print("[测试时间耗尽层数刷新]")
+	# 添加三层buff
+	container.add_buff(stack_buff)
+	container.add_buff(stack_buff2)
+	container.add_buff(stack_buff3)
+	container._physics_process(0.0)
+	
+	# 初始层数应为3
+	runtime = container.get_runtime_buff(stack_buff)
+	passed = print_result("初始层数(3)", runtime.layer == 3, "初始层数应为3") and passed
+	
+	# 模拟时间耗尽
+	container._physics_process(5.1)  # 超过持续时间
+	
+	# 验证层数减少和时间重置
+	passed = print_result("时间耗尽后层数减少", runtime.layer == 2, "层数应减少至2") and passed
+	passed = print_result("持续时间重置", is_equal_approx(runtime.duration_time, 5.0), 
+						 "持续时间应重置为5.0") and passed
+	
+	# 再次耗尽时间
+	container._physics_process(5.1)
+	passed = print_result("第二次时间耗尽层数减少", runtime.layer == 1, "层数应减少至1") and passed
+	
+	# 最后一次耗尽时间
+	container._physics_process(5.1)
+	passed = print_result("层数耗尽后buff移除", container.get_runtime_buff(stack_buff) == null, 
+						 "层数耗尽后buff应被移除") and passed
 	
 	container.queue_free()
 	return passed
