@@ -10,7 +10,9 @@ enum STACK_TYPE {
 }
 
 @export var buff_name: StringName = &""
-@export var override_buff_name:StringName
+@export var override_buff_name:StringName = &"":
+	get():
+		return buff_name if override_buff_name == &"" else override_buff_name
 @export var init_buff_blackboard: Dictionary = {}
 @export var default_duration: float = 0.0
 @export var is_default_duration_inf:bool = false
@@ -19,6 +21,7 @@ enum STACK_TYPE {
 @export var default_interval_num:int = 0
 @export var is_interval_num_inf:bool = false
 @export var stack_type:STACK_TYPE = STACK_TYPE.PRIORITY
+@export var is_disable_override:bool = false
 @export var max_layers:int = 1
 @export var is_layers_exhausted:bool = false
 
@@ -119,7 +122,7 @@ func get_runtime_instance(container: GD_BuffContainer) -> GD_RuntimeBuff:
 	return GD_RuntimeBuff.new(self, container)
 
 func can_stack_with(other_buff: GD_Buff) -> bool:
-	return override_buff_name == other_buff.override_buff_name
+	return (override_buff_name == other_buff.override_buff_name) and !is_disable_override
 
 func conflicts_with(_other_buff: GD_Buff) -> bool:
 	return false

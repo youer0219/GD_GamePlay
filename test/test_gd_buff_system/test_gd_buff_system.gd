@@ -267,7 +267,7 @@ func test_stack_type_handling() -> bool:
 	
 	# 添加另一个加时buff
 	var new_addtime_buff = AddTime_Buff.new()
-	new_addtime_buff.buff_name = "AddTimeTest"  # 相同名称才能加时
+	new_addtime_buff.buff_name = "AddTimeTest"
 	new_addtime_buff.default_duration = 1.5
 	container.add_buff(new_addtime_buff)
 	container._physics_process(0.0)
@@ -286,10 +286,24 @@ func test_stack_type_handling() -> bool:
 	
 	var new_unique_buff = Unique_Buff.new()
 	new_unique_buff.buff_name = "UniqueTest"
-	new_unique_buff.override_buff_name = "UniqueTest"  # 修正变量名错误
+	new_unique_buff.override_buff_name = "UniqueTest" 
 	new_unique_buff.default_duration = 2.0
 	passed = print_result("添加另一个唯一buff", !container.add_buff(new_unique_buff), "应返回false") and passed
 	passed = print_result("唯一buff数量", container.runtime_buffs.size() == 1, "唯一buff应只有一个") and passed
+	
+	container.remove_buff(unique_buff)
+	
+	# 4. 测试is_disable_override功能
+	var stake_buff = Stack_Buff.new()
+	stake_buff.default_duration = 1.0
+	stake_buff.is_disable_override = true
+	container.add_buff(stake_buff)
+	var new_stake_buff = Stack_Buff.new()
+	new_addtime_buff.buff_name = "XXXX"
+	new_addtime_buff.override_buff_name = stake_buff.buff_name
+	container.add_buff(new_addtime_buff) 
+	container._physics_process(0.0) # 不进行这一步，就要改为检查pending-add-buffs了
+	passed = print_result("buff数量应该是两个", container.runtime_buffs.size() == 2, "两个buff无法叠加应该都会存在") and passed
 	
 	container.queue_free()
 	return passed
@@ -400,16 +414,19 @@ func test_priority_handling() -> bool:
 	# 创建不同优先级的buff
 	var high_priority = Priority_Buff.new()
 	high_priority.buff_name = "HighPriority"
+	high_priority.override_buff_name = "PriorityBuff"
 	high_priority.default_priority = 10
 	high_priority.default_duration = 5.0
 	
 	var medium_priority = Priority_Buff.new()
 	medium_priority.buff_name = "MediumPriority"
+	medium_priority.override_buff_name = "PriorityBuff"
 	medium_priority.default_priority = 5
 	medium_priority.default_duration = 5.0
 	
 	var low_priority = Priority_Buff.new()
 	low_priority.buff_name = "LowPriority"
+	low_priority.override_buff_name = "PriorityBuff"
 	low_priority.default_priority = 1
 	low_priority.default_duration = 5.0
 	
