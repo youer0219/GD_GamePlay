@@ -7,6 +7,8 @@ signal buff_started(runtime_buff:GD_RuntimeBuff)
 signal buff_refreshed(runtime_buff:GD_RuntimeBuff)
 signal buff_interval_triggered(runtime_buff:GD_RuntimeBuff)
 signal buff_removed(runtime_buff:GD_RuntimeBuff)
+signal buff_enabled(runtime_buff:GD_RuntimeBuff)
+signal buff_disenabled(runtime_buff:GD_RuntimeBuff)
 
 var initial_buffs: Array[GD_Buff] = []
 ## 待添加的buff字典。每帧开始时将其运行时buff实例化、添加到runtime_buffs字典中并调用其start方法
@@ -50,6 +52,12 @@ func _on_interval_triggered(runtime_buff: GD_RuntimeBuff) -> void:
 
 func _on_buff_removed(runtime_buff: GD_RuntimeBuff) -> void:
 	buff_removed.emit(runtime_buff)
+
+func _on_buff_enabled(runtime_buff:GD_RuntimeBuff) -> void:
+	buff_enabled.emit(runtime_buff)
+
+func _on_buff_disenabled(runtime_buff:GD_RuntimeBuff) -> void:
+	buff_disenabled.emit(runtime_buff)
 
 func add_buff(buff: GD_Buff) -> bool:
 	if not buff:
@@ -128,6 +136,8 @@ func _connect_runtime_buff(runtime_buff:GD_RuntimeBuff):
 	runtime_buff.refreshed.connect(_on_buff_refreshed.bind(runtime_buff))
 	runtime_buff.interval_triggered.connect(_on_interval_triggered.bind(runtime_buff))
 	runtime_buff.removed.connect(_on_buff_removed.bind(runtime_buff))
+	runtime_buff.enabled.connect(_on_buff_enabled.bind(runtime_buff))
+	runtime_buff.disenabled.connect(_on_buff_disenabled.bind(runtime_buff))
 
 func _disconnect_runtime_buff(runtime_buff:GD_RuntimeBuff):
 	runtime_buff.awake.disconnect(_on_buff_awake.bind(runtime_buff))
@@ -135,3 +145,5 @@ func _disconnect_runtime_buff(runtime_buff:GD_RuntimeBuff):
 	runtime_buff.refreshed.disconnect(_on_buff_refreshed)
 	runtime_buff.interval_triggered.disconnect(_on_interval_triggered)
 	runtime_buff.removed.disconnect(_on_buff_removed)
+	runtime_buff.enabled.disconnect(_on_buff_enabled.bind(runtime_buff))
+	runtime_buff.disenabled.disconnect(_on_buff_disenabled.bind(runtime_buff))

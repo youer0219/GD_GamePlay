@@ -7,6 +7,8 @@ signal started(runtime_buff: GD_RuntimeBuff)
 signal refreshed(runtime_buff: GD_RuntimeBuff)
 signal interval_triggered(runtime_buff: GD_RuntimeBuff)
 signal removed(runtime_buff: GD_RuntimeBuff)
+signal enabled(runtime_buff: GD_RuntimeBuff)
+signal disenabled(runtime_buff: GD_RuntimeBuff)
 
 enum BUFF_STATE {
 	INIT,
@@ -94,9 +96,11 @@ func buff_remove() -> void:
 
 func exist_buff_enable()->void:
 	buff._on_exist_buff_enable(container,self)
+	enabled.emit()
 
 func exist_buff_disenable()->void:
 	buff._on_exist_buff_disenable(container,self)
+	disenabled.emit()
 
 func can_stack_with(other_buff: GD_Buff) -> bool:
 	return buff.can_stack_with(other_buff)
