@@ -28,6 +28,9 @@ var layer:int = 1:
 		layer = clamp(value,0,buff.max_layers)
 var curr_interval_time := 0.0
 var curr_interval_num := 0
+var duration_time_flow_rate:float = 1.0:
+	set(value):
+		duration_time_flow_rate = max(0,value)
 var blackboard: Dictionary = {}
 
 func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:

@@ -190,6 +190,16 @@ func test_duration_and_removal() -> bool:
 	container._physics_process(0.0)
 	passed = print_result("零持续时间buff自动移除", instant_buff.remove_count == 1, "零持续时间buff未自动移除") and passed
 	
+	# 测试持续时间流速机制
+	var new_buff = Test_Buff.new()
+	buff.buff_name = "RateDurationTest"
+	buff.default_duration = 2.0
+	container.add_buff(new_buff)
+	runtime = container.get_runtime_buff(new_buff)
+	runtime.duration_time_flow_rate = 2.0
+	container._physics_process(1.0)
+	passed = print_result("持续时间流速翻倍，2sbuff在1s后被移除", container.get_runtime_buff(new_buff) == null, "未从容器中移除") and passed
+	
 	container.queue_free()
 	return passed
 
@@ -295,13 +305,15 @@ func test_stack_type_handling() -> bool:
 	
 	# 4. 测试is_disable_override功能
 	var stake_buff = Stack_Buff.new()
+	stake_buff.buff_name = "AAAA"
 	stake_buff.default_duration = 1.0
 	stake_buff.is_disable_override = true
 	container.add_buff(stake_buff)
 	var new_stake_buff = Stack_Buff.new()
-	new_addtime_buff.buff_name = "XXXX"
-	new_addtime_buff.override_buff_name = stake_buff.buff_name
-	container.add_buff(new_addtime_buff) 
+	new_stake_buff.buff_name = "XXXX"
+	new_stake_buff.override_buff_name = stake_buff.buff_name
+	new_stake_buff.default_duration = 1.0
+	container.add_buff(new_stake_buff) 
 	container._physics_process(0.0) # 不进行这一步，就要改为检查pending-add-buffs了
 	passed = print_result("buff数量应该是两个", container.runtime_buffs.size() == 2, "两个buff无法叠加应该都会存在") and passed
 	

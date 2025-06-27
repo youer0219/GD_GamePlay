@@ -33,7 +33,7 @@ func _on_buff_start(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff)
 
 func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, delta: float) -> void:
 	
-	runtime_buff.duration_time -= delta
+	runtime_buff.duration_time -= delta * runtime_buff.duration_time_flow_rate
 	
 	if not runtime_buff.is_duration_active():
 		_on_buff_time_end(container,runtime_buff)
