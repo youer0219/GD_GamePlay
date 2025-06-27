@@ -105,6 +105,7 @@ func run_tests() -> void:
 	all_passed = test_blackboard() and all_passed
 	all_passed = test_priority_handling() and all_passed
 	all_passed = test_interval_processing() and all_passed
+	all_passed = test_buff_factory() and all_passed
 	
 	if all_passed:
 		print_rich("[color=green]===== 所有测试通过! =====[/color]")
@@ -659,4 +660,122 @@ func test_interval_processing() -> bool:
 						 "应为%d次，实际%d次" % [10 - 1, small_runtime.curr_interval_num]) and passed
 	
 	container.queue_free()
+	return passed
+
+func test_buff_factory() -> bool:
+	print("\n[测试Buff工厂功能]")
+	var passed = true
+	
+	# 1. 测试数据验证功能
+	print("[测试数据验证]")
+	var invalid_data = {
+		"buff_name": 123, # 错误类型
+		"max_layers": 0   # 无效值
+	}
+	passed = print_result("验证无效数据", !GD_BuffFactory.validate_buff_data(invalid_data), "应拒绝无效数据") and passed
+	
+	var valid_data = {
+		"buff_name": "TestBuff",
+		"stack_type": "STACK",
+		"max_layers": 3
+	}
+	passed = print_result("验证有效数据", GD_BuffFactory.validate_buff_data(valid_data), "应接受有效数据") and passed
+	
+	# 测试无效的stack_type
+	var invalid_stack = valid_data.duplicate()
+	invalid_stack["stack_type"] = "INVALID_TYPE"
+	passed = print_result("验证无效stack_type", !GD_BuffFactory.validate_buff_data(invalid_stack), "应拒绝无效stack_type") and passed
+	
+	# 2. 测试从字典创建buff
+	print("[测试字典创建]")
+	var buff = GD_BuffFactory.create_buff_from_dict(valid_data)
+	passed = print_result("创建有效buff", buff != null, "应成功创建buff") and passed
+	if buff:
+		passed = print_result("buff名称", buff.buff_name == "TestBuff", "名称应为TestBuff") and passed
+		passed = print_result("stack类型", buff.stack_type == GD_Buff.STACK_TYPE.STACK, "应为STACK类型") and passed
+		passed = print_result("最大层数", buff.max_layers == 3, "最大层数应为3") and passed
+	
+	# 3. 测试JSON创建和序列化
+	print("[测试JSON处理]")
+	var json_str = """
+	{
+		"buff_name": "PoisonBuff",
+		"default_duration": 10.0,
+		"default_interval_time": 1.0,
+		"default_interval_num": 5,
+		"stack_type": "STACK",
+		"max_layers": 3
+	}
+	"""
+	
+	# 从JSON创建
+	var poison_buff = GD_BuffFactory.create_buff_from_json(json_str)
+	passed = print_result("JSON创建buff", poison_buff != null, "应成功从JSON创建") and passed
+	if poison_buff:
+		passed = print_result("JSON名称", poison_buff.buff_name == "PoisonBuff", "名称应为PoisonBuff") and passed
+		passed = print_result("JSON持续时间", poison_buff.default_duration == 10.0, "持续时间应为10.0") and passed
+		passed = print_result("JSON间隔时间", poison_buff.default_interval_time == 1.0, "间隔时间应为1.0") and passed
+		passed = print_result("JSON间隔次数", poison_buff.default_interval_num == 5, "间隔次数应为5") and passed
+		
+		# 序列化测试
+		var serialized_dict = GD_BuffFactory.buff_to_dict(poison_buff)
+		passed = print_result("序列化为字典", serialized_dict != null and serialized_dict.size() > 0, "应成功序列化") and passed
+		
+		# 检查序列化结果
+		if serialized_dict:
+			passed = print_result("序列化名称", serialized_dict["buff_name"] == "PoisonBuff", "名称应为PoisonBuff") and passed
+			passed = print_result("序列化stack类型", serialized_dict["stack_type"] == "STACK", "应为STACK类型") and passed
+			passed = print_result("序列化层数", serialized_dict["max_layers"] == 3, "最大层数应为3") and passed
+		
+		# 测试JSON序列化
+		var serialized_json = GD_BuffFactory.buff_to_json(poison_buff)
+		passed = print_result("序列化为JSON", serialized_json != null and serialized_json.length() > 0, "应生成JSON字符串") and passed
+		
+		# 验证JSON可被重新解析
+		if serialized_json:
+			var reparsed_buff = GD_BuffFactory.create_buff_from_json(serialized_json)
+			passed = print_result("重新解析JSON", reparsed_buff != null, "应成功重新解析") and passed
+			if reparsed_buff:
+				passed = print_result("重新解析名称", reparsed_buff.buff_name == "PoisonBuff", "名称应为PoisonBuff") and passed
+				passed = print_result("重新解析持续时间", reparsed_buff.default_duration == 10.0, "持续时间应为10.0") and passed
+	
+	# 4. 测试默认模板
+	print("[测试默认模板]")
+	var default_template = GD_BuffFactory.create_default_buff_template()
+	passed = print_result("默认模板存在", default_template != null, "应创建默认模板") and passed
+	if default_template:
+		passed = print_result("默认名称", default_template["buff_name"] == "new_buff", "名称应为new_buff") and passed
+		passed = print_result("默认stack类型", default_template["stack_type"] == "PRIORITY", "应为PRIORITY") and passed
+		
+		# 使用模板创建buff
+		var default_buff = GD_BuffFactory.create_buff_from_dict(default_template)
+		passed = print_result("从模板创建buff", default_buff != null, "应成功创建") and passed
+	
+	# 5. 测试复杂场景
+	print("[测试复杂场景]")
+	var complex_data = {
+		"buff_name": "ComplexBuff",
+		"override_buff_name": "OverrideName",
+		"init_buff_blackboard": {"key1": "value1", "key2": 42},
+		"is_default_duration_inf": true,
+		"default_priority": 5,
+		"is_interval_num_inf": true,
+		"is_disable_override": true,
+		"is_layers_exhausted": true
+	}
+	
+	var complex_buff = GD_BuffFactory.create_buff_from_dict(complex_data)
+	passed = print_result("创建复杂buff", complex_buff != null, "应成功创建") and passed
+	if complex_buff:
+		passed = print_result("复杂名称", complex_buff.buff_name == "ComplexBuff", "名称应为ComplexBuff") and passed
+		passed = print_result("覆写名称", complex_buff.override_buff_name == "OverrideName", "覆写名称应为OverrideName") and passed
+		passed = print_result("黑板内容", 
+			complex_buff.init_buff_blackboard["key1"] == "value1" and complex_buff.init_buff_blackboard["key2"] == 42,
+			"黑板内容不匹配") and passed
+		passed = print_result("无限持续时间", complex_buff.is_default_duration_inf, "应为无限持续时间") and passed
+		passed = print_result("优先级", complex_buff.default_priority == 5, "优先级应为5") and passed
+		passed = print_result("无限间隔次数", complex_buff.is_interval_num_inf, "应为无限间隔次数") and passed
+		passed = print_result("禁用覆写", complex_buff.is_disable_override, "应禁用覆写") and passed
+		passed = print_result("层数耗尽", complex_buff.is_layers_exhausted, "应启用层数耗尽") and passed
+	
 	return passed

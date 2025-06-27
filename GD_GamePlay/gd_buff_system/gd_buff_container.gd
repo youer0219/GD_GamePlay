@@ -140,10 +140,10 @@ func _connect_runtime_buff(runtime_buff:GD_RuntimeBuff):
 	runtime_buff.disenabled.connect(_on_buff_disenabled.bind(runtime_buff))
 
 func _disconnect_runtime_buff(runtime_buff:GD_RuntimeBuff):
-	runtime_buff.awake.disconnect(_on_buff_awake.bind(runtime_buff))
+	runtime_buff.awake.disconnect(_on_buff_awake)
 	runtime_buff.started.disconnect(_on_buff_started)
 	runtime_buff.refreshed.disconnect(_on_buff_refreshed)
 	runtime_buff.interval_triggered.disconnect(_on_interval_triggered)
 	runtime_buff.removed.disconnect(_on_buff_removed)
-	runtime_buff.enabled.disconnect(_on_buff_enabled.bind(runtime_buff))
-	runtime_buff.disenabled.disconnect(_on_buff_disenabled.bind(runtime_buff))
+	runtime_buff.enabled.disconnect(_on_buff_enabled)
+	runtime_buff.disenabled.disconnect(_on_buff_disenabled)
