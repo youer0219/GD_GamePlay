@@ -45,6 +45,8 @@ PS:其实原版就是GDS转C++，这是一个轮回哈哈。为了避免类名�
 	- 完善buff工厂的配置数据检查
 	- 实践DEMO
 
+[BUFF系统文档](docs/GD_Buff_Docs/GDBuffDocs.md)（未完工……）
+
 ## utilities
 
 之前实现的一个优先级字典。已弃用。
