@@ -127,14 +127,18 @@ func _is_base_check_pass() -> bool:
 	return true
 
 func _set_enable(value:bool):
-	if enable == value:
-		return
-	if state == BUFF_STATE.EXIST:
+	## 只允许在EXIST状态下设置为true，其余状态应该都为false。
+	if state != BUFF_STATE.EXIST:
 		if value:
-			exist_buff_enable()
-		else:
-			exist_buff_disenable()
+			push_error("只允许在EXIST状态下设置为true")
+		return
+	if enable == value:return
 	enable = value
+	if enable:
+		exist_buff_enable()
+	else:
+		exist_buff_disenable()
+
 
 func _set_higher_buff_num(new_num:int):
 	higher_buff_num = max(new_num,0)
