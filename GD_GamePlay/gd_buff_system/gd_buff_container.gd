@@ -24,7 +24,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	for runtime_buff:GD_RuntimeBuff in pending_add_buffs.values():
 		runtime_buffs[runtime_buff.buff.buff_name] = runtime_buff
-		_connect_runtime_buff(runtime_buff)
+		
 		runtime_buff.buff_start()
 	
 	if not pending_add_buffs.is_empty():
@@ -38,44 +38,19 @@ func _physics_process(delta: float) -> void:
 	for should_remove_buff in should_remove_buffs:
 		remove_runtime_buff(should_remove_buff)
 
-func _on_buff_awake(runtime_buff: GD_RuntimeBuff) -> void:
-	buff_awake.emit(runtime_buff)
-
-func _on_buff_started(runtime_buff: GD_RuntimeBuff) -> void:
-	buff_started.emit(runtime_buff)
-
-func _on_buff_refreshed(runtime_buff: GD_RuntimeBuff) -> void:
-	buff_refreshed.emit(runtime_buff)
-
-func _on_interval_triggered(runtime_buff: GD_RuntimeBuff) -> void:
-	buff_interval_triggered.emit(runtime_buff)
-
-func _on_buff_removed(runtime_buff: GD_RuntimeBuff) -> void:
-	buff_removed.emit(runtime_buff)
-
-func _on_buff_enabled(runtime_buff:GD_RuntimeBuff) -> void:
-	buff_enabled.emit(runtime_buff)
-
-func _on_buff_disenabled(runtime_buff:GD_RuntimeBuff) -> void:
-	buff_disenabled.emit(runtime_buff)
-
 func add_buff(buff: GD_Buff) -> bool:
 	if not buff:
 		push_error("The Buff cannot be null.")
 		return false
 	
-	## 重叠和重复检查
-	var conflict_runtime_buffs: Array[GD_RuntimeBuff] = []
+	## 冲突和重叠检查
 	var stack_runtime_buffs: Array[GD_RuntimeBuff] = []
 	
 	for existing_runtime_buff:GD_RuntimeBuff in get_runtime_buffs():
 		if existing_runtime_buff.conflicts_with(buff):
-			conflict_runtime_buffs.append(existing_runtime_buff)
+			return false
 		elif existing_runtime_buff.can_stack_with(buff):
 			stack_runtime_buffs.append(existing_runtime_buff)
-	
-	if not conflict_runtime_buffs.is_empty():
-		return false
 	
 	var runtime_buff = buff.get_runtime_instance(self)
 	
@@ -89,6 +64,7 @@ func add_buff(buff: GD_Buff) -> bool:
 		return false
 	
 	pending_add_buffs[buff.buff_name] = runtime_buff
+	_connect_runtime_buff(runtime_buff)
 	runtime_buff.buff_awake()
 	
 	return true
@@ -147,3 +123,24 @@ func _disconnect_runtime_buff(runtime_buff:GD_RuntimeBuff):
 	runtime_buff.removed.disconnect(_on_buff_removed)
 	runtime_buff.enabled.disconnect(_on_buff_enabled)
 	runtime_buff.disenabled.disconnect(_on_buff_disenabled)
+
+func _on_buff_awake(runtime_buff: GD_RuntimeBuff) -> void:
+	buff_awake.emit(runtime_buff)
+
+func _on_buff_started(runtime_buff: GD_RuntimeBuff) -> void:
+	buff_started.emit(runtime_buff)
+
+func _on_buff_refreshed(runtime_buff: GD_RuntimeBuff) -> void:
+	buff_refreshed.emit(runtime_buff)
+
+func _on_interval_triggered(runtime_buff: GD_RuntimeBuff) -> void:
+	buff_interval_triggered.emit(runtime_buff)
+
+func _on_buff_removed(runtime_buff: GD_RuntimeBuff) -> void:
+	buff_removed.emit(runtime_buff)
+
+func _on_buff_enabled(runtime_buff:GD_RuntimeBuff) -> void:
+	buff_enabled.emit(runtime_buff)
+
+func _on_buff_disenabled(runtime_buff:GD_RuntimeBuff) -> void:
+	buff_disenabled.emit(runtime_buff)
