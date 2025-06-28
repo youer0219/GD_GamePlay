@@ -62,8 +62,7 @@ func buff_start() -> void:
 	buff._on_buff_start(container, self)
 	started.emit()
 	
-	if can_enable():
-		enable = true
+	enable = can_enable()
 
 func buff_process(delta: float) -> void:
 	if not _is_base_check_pass():
@@ -112,7 +111,7 @@ func should_remove_buff_after_process()->bool:
 	return buff.should_remove_buff_after_process(container,self)
 
 func can_enable()->bool:
-	return higher_buff_num == 0
+	return higher_buff_num == 0 and state == BUFF_STATE.EXIST
 
 func is_duration_active() -> bool:
 	return not is_zero_approx(duration_time)
@@ -142,5 +141,4 @@ func _set_enable(value:bool):
 
 func _set_higher_buff_num(new_num:int):
 	higher_buff_num = max(new_num,0)
-	if higher_buff_num == 0 and can_enable():
-		enable = true
+	enable = can_enable()
