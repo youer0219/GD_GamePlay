@@ -33,7 +33,7 @@ func _physics_process(delta: float) -> void:
 	var should_remove_buffs:Array[GD_RuntimeBuff] = []
 	for runtime_buff:GD_RuntimeBuff in runtime_buffs.values():
 		runtime_buff.buff_process(delta)
-		if runtime_buff.can_remove_buff():
+		if runtime_buff.should_remove_buff_after_process():
 			should_remove_buffs.append(runtime_buff)
 	for should_remove_buff in should_remove_buffs:
 		remove_runtime_buff(should_remove_buff)

@@ -32,18 +32,18 @@ func _on_buff_start(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff)
 	pass
 
 func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, delta: float) -> void:
-	
-	runtime_buff.duration_time -= delta * runtime_buff.duration_time_flow_rate
-	
-	if not runtime_buff.is_duration_active():
-		_on_buff_time_end(container,runtime_buff)
-	
 	if runtime_buff.enable and (runtime_buff.curr_interval_num > 0 or is_interval_num_inf):
 		runtime_buff.curr_interval_time += delta
 		if runtime_buff.curr_interval_time >= get_interval_time():
 			runtime_buff.curr_interval_num = max(0,runtime_buff.curr_interval_num - 1)
 			runtime_buff.curr_interval_time = 0.0
 			_on_buff_interval_trigger(container,runtime_buff)
+	
+	runtime_buff.duration_time -= delta * runtime_buff.duration_time_flow_rate
+	
+	if not runtime_buff.is_duration_active():
+		_on_buff_time_end(container,runtime_buff)
+
 
 func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, new_runtime_buff: GD_RuntimeBuff) -> void:
 	match stack_type:
@@ -112,7 +112,7 @@ func can_stack_with(other_buff: GD_Buff) -> bool:
 func conflicts_with(_other_buff: GD_Buff) -> bool:
 	return false
 
-func can_remove_buff(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff)->bool:
+func should_remove_buff_after_process(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff)->bool:
 	return not runtime_buff.is_duration_active()
 
 func should_remove_after_stack()->bool:

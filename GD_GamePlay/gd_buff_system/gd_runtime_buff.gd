@@ -108,8 +108,8 @@ func can_stack_with(other_buff: GD_Buff) -> bool:
 func conflicts_with(other_buff: GD_Buff) -> bool:
 	return buff.conflicts_with(other_buff)
 
-func can_remove_buff()->bool:
-	return buff.can_remove_buff(container,self)
+func should_remove_buff_after_process()->bool:
+	return buff.should_remove_buff_after_process(container,self)
 
 func can_enable()->bool:
 	return higher_buff_num == 0
