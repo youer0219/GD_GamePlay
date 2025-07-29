@@ -44,7 +44,6 @@ func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff,
 	if not runtime_buff.is_duration_active():
 		_on_buff_time_end(container,runtime_buff)
 
-
 func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, new_runtime_buff: GD_RuntimeBuff) -> void:
 	match stack_type:
 		STACK_TYPE.STACK:
@@ -120,10 +119,8 @@ func should_remove_after_stack()->bool:
 func _stack_priority_handler(runtime_buff:GD_RuntimeBuff,new_runtime_buff:GD_RuntimeBuff):
 	if new_runtime_buff.buff.get_priority() == get_priority():
 		return
-	var low_priority_runtimebuff:GD_RuntimeBuff
-	var higher_priority_runtimebuff:GD_RuntimeBuff
-	low_priority_runtimebuff = runtime_buff if new_runtime_buff.buff.get_priority() > get_priority() else new_runtime_buff
-	higher_priority_runtimebuff = runtime_buff if new_runtime_buff.buff.get_priority() < get_priority() else new_runtime_buff
+	var low_priority_runtimebuff:GD_RuntimeBuff = runtime_buff if new_runtime_buff.buff.get_priority() > get_priority() else new_runtime_buff
+	var higher_priority_runtimebuff:GD_RuntimeBuff = runtime_buff if new_runtime_buff.buff.get_priority() < get_priority() else new_runtime_buff
 	low_priority_runtimebuff.higher_buff_num += 1
 	low_priority_runtimebuff.enable = false
 	var weak_runtime_buff = weakref(low_priority_runtimebuff)
