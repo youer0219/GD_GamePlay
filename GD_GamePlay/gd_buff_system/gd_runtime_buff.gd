@@ -43,7 +43,7 @@ func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 	self.buff = new_buff
 	self.container = new_container
 	self.blackboard = new_buff.init_buff_blackboard.duplicate(true)
-	self.duration_time = new_buff.get_duration()
+	self.duration_time = new_buff.get_duration(container)
 	self.curr_interval_num = new_buff.get_default_interval_num()
 
 func buff_awake()->void:
@@ -101,6 +101,9 @@ func exist_buff_disenable()->void:
 	buff._on_exist_buff_disenable(container,self)
 	disenabled.emit()
 
+func get_duration()->float:
+	return buff.get_duration(container)
+
 func can_stack_with(other_buff: GD_Buff) -> bool:
 	return buff.can_stack_with(other_buff)
 
@@ -137,7 +140,6 @@ func _set_enable(value:bool):
 		exist_buff_enable()
 	else:
 		exist_buff_disenable()
-
 
 func _set_higher_buff_num(new_num:int):
 	higher_buff_num = max(new_num,0)

@@ -1,6 +1,6 @@
 # GD_GamePlay
 
-目前通过GDS实现了能力系统和BUFF系统。
+目前通过GDS实现了能力系统和BUFF系统。这不是插件，而是一组脚本。
 
 属性系统我认为[godot_gameplay_attributes](https://github.com/OctoD/godot_gameplay_attributes)已经满足需求且使用C++实现，性能优秀。
 可能为了学习或自定义，会在未来用GDS写一个。
@@ -38,11 +38,10 @@ PS:其实原版就是GDS转C++，这是一个轮回哈哈。为了避免类名�
 	- 冲突机制
 	- 间隔触发机制
 	- buff持续时间流速机制（不打算完全实现mrfz机制，不影响间隔时间）
-	- buff工厂，支持JSON格式生成buff，支持静态配置数据检查
-		- 未完善
+	- buff工厂(很不成熟的想法，可以删除)
 - TODO:
 	- 代码优化，补充注释和文档
-	- 完善buff工厂的配置数据检查
+	- 完善buff工厂功能
 	- 实践DEMO
 
 [BUFF系统文档](docs/GD_Buff_Docs/GDBuffDocs.md)（未完工……）

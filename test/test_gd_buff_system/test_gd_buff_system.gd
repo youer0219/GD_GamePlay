@@ -73,7 +73,7 @@ class ConflictBase_Buff extends Test_Buff:
 
 # 零持续时间效果 - 测试立即移除情况
 class Instant_Buff extends Test_Buff:
-	func get_duration() -> float:
+	func get_duration(_container) -> float:
 		return 0.0
 	
 	func can_remove_buff(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> bool:

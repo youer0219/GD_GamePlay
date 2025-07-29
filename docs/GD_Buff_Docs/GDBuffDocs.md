@@ -1,6 +1,8 @@
 # GD_BuffSystem
 
-## BuffSystem组成
+## 简介
+
+参考+组成+目前状态
 
 ## Buff生命周期综述
 
@@ -22,7 +24,7 @@ Buff应当且仅应当通过容器的`add_buff`方法添加到容器中。在添
 		- 但遇到`should_remove_after_stack`返回true的buff时，中断并返回false。
 	- 对于同一个buff，冲突优先于叠加。
 3. 重复检查：`buff_name`应当唯一
-4. 将runtime-buff添加到待添加字典中。runtime-buff连接信号，进入PRE-ADD状态，触发buff的`_on_buff_awake`方法。
+4. 将runtime-buff添加到待添加字典中。runtime-buff连接信号，进入AWAKE状态，触发buff的`_on_buff_awake`方法。
 5. 返回true。
 
 在`下一帧`开始时，如果runtime-buff仍然存在与待添加字典中，runtime-buff正式添加到容器中并生效：
@@ -30,6 +32,8 @@ Buff应当且仅应当通过容器的`add_buff`方法添加到容器中。在添
 2. runtime-buff进入EXIST状态，触发buff的`_on_buff_start`方法。
 在回调方法执行后，如能生效，触发buff的`_on_exist_buff_enable`方法。
 3. 循环1和2，结束循环后清空待添加字典
+
+添加n个buff的时间复杂度为n^2。请注意性能。
 
 ### Buff存在于容器时
 
@@ -51,6 +55,8 @@ Buff应当且仅应当通过容器的`add_buff`方法添加到容器中。在添
 注意，这里是先失效，再移除。
 
 与添加buff相同的是，你应当且仅应当通过容器的`remove_buff`或`remove_runtime_buff`方法来移除buff。
+
+runtime-buff为RefCounted类型，不需要我们管理其销毁，不再引用即可。
 
 ### Buff生效失效机制
 
@@ -83,9 +89,24 @@ buff的`_on_exist_buff_enable`方法或`_on_exist_buff_disenable`方法。
 本项目通过重写buff的`can_stack_with`方法来判断`已有buff是否排斥新buff`。如果你想实现两两互斥，
 则需要同时修改两者的`can_stack_with`方法，或者在某一个生效时，驱逐另一个buff。
 
+请注意，AWAKE状态的runtime-buff也会加入到冲突的判断中。
+
 ### 叠加关系
 
-#### 优先级机制
+叠加关系在冲突关系之后处理。
 
+默认情况下，已有buff判断能否能与新buff叠加的条件是：覆写名称相同且覆写名称未被禁用。
+
+目前实现了五种叠加机制：优先级、刷新、叠层、加时、唯一：
+- 优先级：最高优先级生效
+- 刷新：持续时间回满
+- 叠层：层数加一，触发buff的`_on_stack_layer_change`方法
+- 加时：持续时间+新buff持续时间
+- 唯一：仅最先加入的buff可以存在
+
+一般的叠加机制后，新runtime-buff会立即结束。但你也可以重写`should_remove_after_stack`方法
+以改变新runtime-buff的命运。默认情况下，只有叠加模式为优先级时，会保留新runtime-buff。
+
+请注意，AWAKE状态的runtime-buff也会加入到叠加的处理中。
 
 ## Buff工厂

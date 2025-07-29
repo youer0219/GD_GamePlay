@@ -54,11 +54,10 @@ func _on_buff_stack(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, n
 			_on_stack_layer_change(container,runtime_buff,new_runtime_buff,is_over)
 		STACK_TYPE.REFRESH:
 			## 延长持续时间至MAX(已存在Buff剩余持续时间，新Buff持续时间)
-			## TODO: 未来get_duration可能加入容器参数。请谨慎考虑。
-			runtime_buff.duration_time = max(runtime_buff.duration_time,new_runtime_buff.buff.get_duration())
+			runtime_buff.duration_time = max(runtime_buff.duration_time,new_runtime_buff.get_duration())
 		STACK_TYPE.ADD_TIME:
 			## 加时
-			runtime_buff.duration_time = runtime_buff.duration_time + new_runtime_buff.buff.get_duration()
+			runtime_buff.duration_time = runtime_buff.duration_time + new_runtime_buff.get_duration()
 		STACK_TYPE.UNIQUE:
 			## 仅保留最早一个同覆写名的Buff。不需要做任何事情。
 			pass
@@ -79,7 +78,7 @@ func _on_buff_time_end(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuf
 		else:
 			runtime_buff.layer -= 1
 			if runtime_buff.layer > 0:
-				runtime_buff.duration_time = get_duration()
+				runtime_buff.duration_time = runtime_buff.get_duration()
 
 func _on_buff_remove(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
@@ -90,7 +89,7 @@ func _on_exist_buff_enable(_container: GD_BuffContainer, _runtime_buff: GD_Runti
 func _on_exist_buff_disenable(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff)->void:
 	pass
 
-func get_duration()->float:
+func get_duration(_container:GD_BuffContainer)->float:
 	return default_duration if not is_default_duration_inf else INF
 
 func get_priority()->int:
