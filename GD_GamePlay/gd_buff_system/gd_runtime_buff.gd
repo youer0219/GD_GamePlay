@@ -42,7 +42,7 @@ func _init(new_buff: GD_Buff, new_container: GD_BuffContainer) -> void:
 	
 	self.buff = new_buff
 	self.container = new_container
-	self.blackboard = new_buff.init_buff_blackboard
+	self.blackboard = new_buff.init_buff_blackboard.duplicate(true)
 	self.duration_time = new_buff.get_duration(container)
 	self.curr_interval_num = new_buff.get_default_interval_num()
 
