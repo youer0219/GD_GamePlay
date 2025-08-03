@@ -70,15 +70,16 @@ func add_buff(buff: GD_Buff,context:Dictionary = {}) -> bool:
 	
 	return true
 
+func add_buffs(buffs:Array[GD_Buff])->bool:
+	return buffs.all(add_buff.bind({}))
+
 ## 默认传入的contexts要么为空，要么和buffs一样大小
-func add_buffs(buffs:Array[GD_Buff],contexts:Array[Dictionary] = [])->bool:
-	var result := true
+func add_buffs_with_contexts(buffs:Array[GD_Buff],contexts:Array[Dictionary] = [])->bool:
 	if contexts == []:
-		for i in buffs.size():
-			result = add_buff(buffs[i]) and result
-	else:
-		for i in buffs.size():
-			result = add_buff(buffs[i],contexts[i]) and result
+		return add_buffs(buffs)
+	var result := true
+	for i in buffs.size():
+		result = add_buff(buffs[i],contexts[i]) and result
 	return result
 
 func remove_buff(buff: GD_Buff) -> bool:
@@ -166,13 +167,3 @@ func _on_buff_enabled(runtime_buff:GD_RuntimeBuff) -> void:
 
 func _on_buff_disenabled(runtime_buff:GD_RuntimeBuff) -> void:
 	buff_disenabled.emit(runtime_buff)
-
-static func get_dic_array(size:int,dic:Dictionary = {})->Array[Dictionary]:
-	var dic_array :Array[Dictionary] = []
-	for i in size:
-		dic_array.append(dic)
-	return dic_array
-
-static func merge_dic_array(dic_array:Array[Dictionary],new_dic_array:Array[Dictionary])->void:
-	for i in dic_array.size():
-		dic_array[i].merge(new_dic_array[i],true)
