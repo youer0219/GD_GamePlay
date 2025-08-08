@@ -104,6 +104,9 @@ func exist_buff_disenable()->void:
 func get_duration()->float:
 	return buff.get_duration(container)
 
+func get_priority()->int:
+	return buff.get_priority(container)
+
 func can_stack_with(other_buff: GD_Buff) -> bool:
 	return buff.can_stack_with(other_buff)
 

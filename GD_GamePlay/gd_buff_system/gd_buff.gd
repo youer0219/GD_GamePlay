@@ -91,7 +91,7 @@ func _on_exist_buff_disenable(_container: GD_BuffContainer, _runtime_buff: GD_Ru
 func get_duration(_container:GD_BuffContainer)->float:
 	return default_duration if not is_default_duration_inf else INF
 
-func get_priority()->int:
+func get_priority(_container:GD_BuffContainer)->int:
 	return default_priority 
 
 func get_interval_time()->float:
@@ -117,10 +117,12 @@ func should_remove_after_stack()->bool:
 	return stack_type != STACK_TYPE.PRIORITY
 
 func _stack_priority_handler(runtime_buff:GD_RuntimeBuff,new_runtime_buff:GD_RuntimeBuff):
-	if new_runtime_buff.buff.get_priority() == get_priority():
+	var self_buff_priority := runtime_buff.get_priority()
+	var new_buff_priority := new_runtime_buff.get_priority()
+	if self_buff_priority == new_buff_priority:
 		return
-	var low_priority_runtimebuff:GD_RuntimeBuff = runtime_buff if new_runtime_buff.buff.get_priority() > get_priority() else new_runtime_buff
-	var higher_priority_runtimebuff:GD_RuntimeBuff = runtime_buff if new_runtime_buff.buff.get_priority() < get_priority() else new_runtime_buff
+	var low_priority_runtimebuff:GD_RuntimeBuff = runtime_buff if new_buff_priority > self_buff_priority else new_runtime_buff
+	var higher_priority_runtimebuff:GD_RuntimeBuff = runtime_buff if new_buff_priority < self_buff_priority else new_runtime_buff
 	low_priority_runtimebuff.higher_buff_num += 1
 	low_priority_runtimebuff.enable = false
 	var weak_runtime_buff = weakref(low_priority_runtimebuff)
