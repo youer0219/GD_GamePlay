@@ -1,5 +1,9 @@
 class_name GD_BuffFactory
 
+## TODO:
+## 此类暂时无用。未来打算添加buff类别属性。
+## 修改了变量名称，导致字符串和原始变量名称不一致。未改。未来可能改变实现方式。
+
 # 静态方法：验证buff数据字典是否有效
 static func validate_buff_data(data: Dictionary) -> bool:
 	# 1. 检查必需字段
@@ -82,7 +86,7 @@ static func create_buff_from_dict(data: Dictionary) -> GD_Buff:
 		buff.default_interval_time = data["default_interval_time"]
 	
 	if data.has("default_interval_num"):
-		buff.default_interval_num = data["default_interval_num"]
+		buff.default_interval_trigger_num = data["default_interval_num"]
 	
 	if data.has("is_interval_num_inf"):
 		buff.is_interval_num_inf = data["is_interval_num_inf"]
@@ -97,7 +101,7 @@ static func create_buff_from_dict(data: Dictionary) -> GD_Buff:
 		buff.max_layers = data["max_layers"]
 	
 	if data.has("is_layers_exhausted"):
-		buff.is_layers_exhausted = data["is_layers_exhausted"]
+		buff.is_clear_layers_on_time_end = data["is_layers_exhausted"]
 	
 	return buff
 
@@ -162,8 +166,8 @@ static func buff_to_dict(buff: GD_Buff) -> Dictionary:
 	if buff.default_interval_time != 0.0:
 		dict["default_interval_time"] = buff.default_interval_time
 	
-	if buff.default_interval_num != 0:
-		dict["default_interval_num"] = buff.default_interval_num
+	if buff.default_interval_trigger_num != 0:
+		dict["default_interval_num"] = buff.default_interval_trigger_num
 	
 	if buff.is_interval_num_inf:
 		dict["is_interval_num_inf"] = true
@@ -180,7 +184,7 @@ static func buff_to_dict(buff: GD_Buff) -> Dictionary:
 	if buff.max_layers != 1:
 		dict["max_layers"] = buff.max_layers
 	
-	if buff.is_layers_exhausted:
+	if buff.is_clear_layers_on_time_end:
 		dict["is_layers_exhausted"] = true
 	
 	return dict

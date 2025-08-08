@@ -9,19 +9,25 @@ enum STACK_TYPE {
 	ADD_TIME,
 }
 
+@export_group("基础属性")
 @export var buff_name: StringName = &""
-@export var override_buff_name:StringName:get = get_override_buff_name
-@export var is_disable_override:bool = false
+@export var override_buff_name: StringName : get = get_override_buff_name
+@export var is_disable_override: bool = false
+@export_group("黑板数据")
 @export var init_buff_blackboard: Dictionary = {}
+@export_group("持续时间相关")
 @export var default_duration: float = 0.0
-@export var is_default_duration_inf:bool = false
+@export var is_default_duration_inf: bool = false
+@export_group("优先级相关")
 @export var default_priority: int = 0
-@export var default_interval_time:float = 0.0
-@export var default_interval_trigger_num:int = 0
-@export var is_interval_num_inf:bool = false
-@export var stack_type:STACK_TYPE = STACK_TYPE.PRIORITY
-@export var max_layers:int = 1
-@export var is_clear_layers_on_time_end:bool = false
+@export_group("间隔触发相关")
+@export var default_interval_time: float = 0.0
+@export var default_interval_trigger_num: int = 0
+@export var is_interval_num_inf: bool = false
+@export_group("叠加机制相关")
+@export var stack_type: STACK_TYPE = STACK_TYPE.PRIORITY
+@export var max_layers: int = 1
+@export var is_clear_layers_on_time_end: bool = false
 
 func _on_buff_awake(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass

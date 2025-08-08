@@ -550,7 +550,7 @@ func test_interval_processing() -> bool:
 	finite_buff.buff_name = "FiniteIntervalTest"
 	finite_buff.default_duration = 3.0
 	finite_buff.default_interval_time = 1.0  # 每秒触发一次
-	finite_buff.default_interval_num = 2      # 最多触发2次
+	finite_buff.default_interval_trigger_num = 2      # 最多触发2次
 	finite_buff.is_interval_num_inf = false   # 明确设置有限次数
 	
 	container.add_buff(finite_buff)
@@ -645,7 +645,7 @@ func test_interval_processing() -> bool:
 	small_interval_buff.buff_name = "SmallIntervalTest"
 	small_interval_buff.default_duration = 1.0
 	small_interval_buff.default_interval_time = 0.1  # 间隔时间小于delta
-	small_interval_buff.default_interval_num = 10
+	small_interval_buff.default_interval_trigger_num = 10
 	small_interval_buff.is_interval_num_inf = false
 	
 	container.add_buff(small_interval_buff)
@@ -715,7 +715,7 @@ func test_buff_factory() -> bool:
 		passed = print_result("JSON名称", poison_buff.buff_name == "PoisonBuff", "名称应为PoisonBuff") and passed
 		passed = print_result("JSON持续时间", poison_buff.default_duration == 10.0, "持续时间应为10.0") and passed
 		passed = print_result("JSON间隔时间", poison_buff.default_interval_time == 1.0, "间隔时间应为1.0") and passed
-		passed = print_result("JSON间隔次数", poison_buff.default_interval_num == 5, "间隔次数应为5") and passed
+		passed = print_result("JSON间隔次数", poison_buff.default_interval_trigger_num == 5, "间隔次数应为5") and passed
 		
 		# 序列化测试
 		var serialized_dict = GD_BuffFactory.buff_to_dict(poison_buff)
@@ -776,6 +776,6 @@ func test_buff_factory() -> bool:
 		passed = print_result("优先级", complex_buff.default_priority == 5, "优先级应为5") and passed
 		passed = print_result("无限间隔次数", complex_buff.is_interval_num_inf, "应为无限间隔次数") and passed
 		passed = print_result("禁用覆写", complex_buff.is_disable_override, "应禁用覆写") and passed
-		passed = print_result("层数耗尽", complex_buff.is_layers_exhausted, "应启用层数耗尽") and passed
+		passed = print_result("层数耗尽", complex_buff.is_clear_layers_on_time_end, "应启用层数耗尽") and passed
 	
 	return passed
