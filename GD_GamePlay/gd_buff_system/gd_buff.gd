@@ -10,20 +10,18 @@ enum STACK_TYPE {
 }
 
 @export var buff_name: StringName = &""
-@export var override_buff_name:StringName = &"":
-	get():
-		return buff_name if override_buff_name == &"" else override_buff_name
+@export var override_buff_name:StringName:get = get_override_buff_name
+@export var is_disable_override:bool = false
 @export var init_buff_blackboard: Dictionary = {}
 @export var default_duration: float = 0.0
 @export var is_default_duration_inf:bool = false
 @export var default_priority: int = 0
 @export var default_interval_time:float = 0.0
-@export var default_interval_num:int = 0
+@export var default_interval_trigger_num:int = 0
 @export var is_interval_num_inf:bool = false
 @export var stack_type:STACK_TYPE = STACK_TYPE.PRIORITY
-@export var is_disable_override:bool = false
 @export var max_layers:int = 1
-@export var is_layers_exhausted:bool = false
+@export var is_clear_layers_on_time_end:bool = false
 
 func _on_buff_awake(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
@@ -72,7 +70,7 @@ func _on_buff_interval_trigger(_container: GD_BuffContainer, _runtime_buff: GD_R
 
 func _on_buff_time_end(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff):
 	if stack_type == STACK_TYPE.STACK:
-		if is_layers_exhausted:
+		if is_clear_layers_on_time_end:
 			runtime_buff.layer = 0
 		else:
 			runtime_buff.layer -= 1
@@ -99,7 +97,7 @@ func get_interval_time()->float:
 
 ## int类型不支持INF。如有需求，请检查其is_interval_num_inf属性。
 func get_default_interval_num()->int:
-	return default_interval_num
+	return default_interval_trigger_num
 
 func get_runtime_instance(container: GD_BuffContainer) -> GD_RuntimeBuff:
 	return GD_RuntimeBuff.new(self, container)
@@ -132,3 +130,6 @@ func _stack_priority_handler(runtime_buff:GD_RuntimeBuff,new_runtime_buff:GD_Run
 			if target:
 				target.higher_buff_num -= 1
 	, CONNECT_ONE_SHOT | CONNECT_REFERENCE_COUNTED)
+
+func get_override_buff_name()->StringName:
+	return buff_name if override_buff_name == &"" else override_buff_name
