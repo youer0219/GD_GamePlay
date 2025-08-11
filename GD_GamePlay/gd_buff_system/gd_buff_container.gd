@@ -43,6 +43,9 @@ func add_buff(buff: GD_Buff,context:Dictionary = {}) -> bool:
 		push_error("The Buff cannot be null.")
 		return false
 	
+	if not buff.can_add_buff(self):
+		return false
+	
 	## 冲突和重叠检查
 	var stack_runtime_buffs: Array[GD_RuntimeBuff] = []
 	

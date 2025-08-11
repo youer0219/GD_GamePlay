@@ -108,6 +108,9 @@ func get_default_interval_num()->int:
 func get_runtime_instance(container: GD_BuffContainer) -> GD_RuntimeBuff:
 	return GD_RuntimeBuff.new(self, container)
 
+func can_add_buff(_container:GD_BuffContainer)->bool:
+	return true
+
 func can_stack_with(other_buff: GD_Buff) -> bool:
 	return (override_buff_name == other_buff.override_buff_name) and !is_disable_override
 
