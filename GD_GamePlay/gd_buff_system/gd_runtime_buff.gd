@@ -61,8 +61,6 @@ func buff_start() -> void:
 	state = BUFF_STATE.EXIST
 	buff._on_buff_start(container, self)
 	started.emit()
-	
-	enable = can_enable()
 
 func buff_process(delta: float) -> void:
 	if not _is_base_check_pass():

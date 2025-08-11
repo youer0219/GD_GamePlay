@@ -32,8 +32,8 @@ enum STACK_TYPE {
 func _on_buff_awake(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
 	pass
 
-func _on_buff_start(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> void:
-	pass
+func _on_buff_start(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff) -> void:
+	runtime_buff.enable = runtime_buff.can_enable()
 
 func _on_buff_process(container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff, delta: float) -> void:
 	if runtime_buff.enable and (runtime_buff.curr_interval_num > 0 or is_interval_num_inf):
