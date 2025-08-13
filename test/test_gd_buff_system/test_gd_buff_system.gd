@@ -781,16 +781,25 @@ func test_buff_factory() -> bool:
 	
 	return passed
 
-func test_instantiate_global_class()->bool:
+func test_instantiate_global_class() -> bool:
 	print("\n[测试全局类实例化]")
-	var passed:bool = true
+	var passed: bool = true
+	
+	# 1. 无参数构造
 	var instance = GD_BuffUtilities.instantiate_global_class("MyBuff")
-	passed = print_result("创建MyBuff",instance is MyBuff ,"实例化后的buff不是指定类型")
+	passed = print_result("创建MyBuff", instance is MyBuff, "实例化后的对象不是指定类型") and passed
 	
+	# 2. 缓存命中
 	var second_instance = GD_BuffUtilities.instantiate_global_class("MyBuff")
-	passed = print_result("再次创建",second_instance is MyBuff ,"实例化后的buff不是指定类型")
+	passed = print_result("再次创建MyBuff（缓存）", second_instance is MyBuff, "缓存实例化后的对象不是指定类型") and passed
 	
+	# 3. 带参数构造
+	var arg_instance = GD_BuffUtilities.instantiate_global_class("MyBuff", ["param1", 42])
+	var init_ok = arg_instance and arg_instance.has_method("get_init_data") and arg_instance.get_init_data() == ["param1", 42]
+	passed = print_result("带参数构造MyBuff", init_ok, "带参数构造未正确传入参数") and passed
+	
+	# 4. 不存在的类
 	var bad_instance = GD_BuffUtilities.instantiate_global_class("NoMyBuff")
-	passed = print_result("测试不存在的类",bad_instance == null ,"不存在的类返回了非null值")
+	passed = print_result("测试不存在的类", bad_instance == null, "不存在的类返回了非null值") and passed
 	
 	return passed

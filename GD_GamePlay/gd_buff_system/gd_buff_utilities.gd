@@ -12,16 +12,23 @@ static func merge_dic_array(dic_array:Array[Dictionary],new_dic_array:Array[Dict
 	for i in dic_array.size():
 		dic_array[i].merge(new_dic_array[i],true)
 
-## 静态方法：根据全局类名实例化对象
-## 如果不存在则警告并返回 null
-static func instantiate_global_class(global_class_name: StringName) -> Object:
+## 公共方法：根据全局类名实例化对象（可选参数）
+static func instantiate_global_class(global_class_name: StringName, args: Array = []) -> Object:
+	# 先查缓存
 	if _global_class_cache.has(global_class_name):
-		return _global_class_cache[global_class_name].new()
+		return _global_class_cache[global_class_name].new.callv(args)
 	
-	var global_class_list:Array[Dictionary] = ProjectSettings.get_global_class_list()
+	# 没缓存就加载脚本
+	var script := _get_global_class_script(global_class_name)
+	if script == null:
+		return null
 	
-	# 遍历全局类列表，查找匹配
-	for class_info in global_class_list:
+	_global_class_cache[global_class_name] = script
+	return script.new.callv(args)
+
+## 私有方法：查找并加载全局类脚本
+static func _get_global_class_script(global_class_name: StringName) -> Script:
+	for class_info in ProjectSettings.get_global_class_list():
 		if class_info.get("class") == global_class_name:
 			var path = class_info.get("path", "")
 			if path == "":
@@ -33,10 +40,7 @@ static func instantiate_global_class(global_class_name: StringName) -> Object:
 				push_warning("Failed to load script for global class '%s'." % global_class_name)
 				return null
 			
-			# 加入缓存
-			_global_class_cache[global_class_name] = script
-			return script.new()
+			return script
 	
-	# 如果没有找到
 	push_warning("Global class '%s' does not exist." % global_class_name)
 	return null
