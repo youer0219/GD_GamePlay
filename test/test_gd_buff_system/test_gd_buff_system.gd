@@ -106,6 +106,7 @@ func run_tests() -> void:
 	all_passed = test_priority_handling() and all_passed
 	all_passed = test_interval_processing() and all_passed
 	all_passed = test_buff_factory() and all_passed
+	all_passed = test_instantiate_global_class() and all_passed
 	
 	if all_passed:
 		print_rich("[color=green]===== 所有测试通过! =====[/color]")
@@ -777,5 +778,19 @@ func test_buff_factory() -> bool:
 		passed = print_result("无限间隔次数", complex_buff.is_interval_num_inf, "应为无限间隔次数") and passed
 		passed = print_result("禁用覆写", complex_buff.is_disable_override, "应禁用覆写") and passed
 		passed = print_result("层数耗尽", complex_buff.is_clear_layers_on_time_end, "应启用层数耗尽") and passed
+	
+	return passed
+
+func test_instantiate_global_class()->bool:
+	print("\n[测试全局类实例化]")
+	var passed:bool = true
+	var instance = GD_BuffUtilities.instantiate_global_class("MyBuff")
+	passed = print_result("创建MyBuff",instance is MyBuff ,"实例化后的buff不是指定类型")
+	
+	var second_instance = GD_BuffUtilities.instantiate_global_class("MyBuff")
+	passed = print_result("再次创建",second_instance is MyBuff ,"实例化后的buff不是指定类型")
+	
+	var bad_instance = GD_BuffUtilities.instantiate_global_class("NoMyBuff")
+	passed = print_result("测试不存在的类",bad_instance == null ,"不存在的类返回了非null值")
 	
 	return passed
