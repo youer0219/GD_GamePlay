@@ -1,5 +1,5 @@
 class_name GD_AllOfGuard
-extends GD_Guard
+extends GD_LogicGuard
 
 @export var guards:Array[GD_Guard] = [] 
 

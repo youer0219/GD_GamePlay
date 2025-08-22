@@ -1,0 +1,7 @@
+extends GD_Guard
+class_name GD_LogicGuard
+
+func is_satisfied(_guard_group:GD_GuardGroup,_context:Dictionary = {}) -> bool:
+	## from Godot State Charts
+	push_error("GD_LogicGuard.is_satisfied() is not implemented. Did you forget to override it?")
+	return false
