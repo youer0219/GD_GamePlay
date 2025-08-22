@@ -3,8 +3,11 @@ extends GD_Guard
 
 @export var guards:Array[GD_Guard] = [] 
 
-func is_satisfied(context:Dictionary = {}) -> bool:
+func is_satisfied(guard_group:GD_GuardGroup,context:Dictionary = {}) -> bool:
+	if guards.is_empty():
+		push_error("No guards provided to AllOfGuard")
+		return false
 	for guard in guards:
-		if not guard.is_satisfied(context):
+		if not guard.is_satisfied(guard_group,context):
 			return false
 	return true
