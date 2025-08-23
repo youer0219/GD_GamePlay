@@ -1,6 +1,7 @@
-# expression_guard.gd
 class_name GD_ExpressionGuard
 extends GD_Guard
+
+## TODO:目前基本不可用。带研究明白后再处理。
 
 @export_multiline var expression_string: String = ""
 
