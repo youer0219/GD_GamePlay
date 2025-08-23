@@ -1,8 +1,13 @@
 extends Resource
 class_name GD_GuardGroup
 
+const ARRAY_ELEMENT_STR := &"array_element"
+const ARRAY_FIRST_ELEMENT_STR := &"array_first_element"
+const ARRAY_SECOND_ELEMENT_STR := &"array_second_element"
+
 ## TODO:是否应该为node？
 var owner:Object
+
 @export var context:Dictionary
 @export var init_guard:GD_Guard
 
@@ -22,3 +27,14 @@ static func evaluate(guard_to_check: GD_Guard, owner_node: Object, extra_context
 	group.context = extra_context
 	group.init_guard = guard_to_check
 	return group.is_satisfied()
+
+# 用于数组遍历的方法
+func array_traversal(array_element:Object)->bool:
+	context[ARRAY_ELEMENT_STR] = array_element
+	return is_satisfied()
+
+# 用于数组排序的方法
+func array_sort(first_element:Object,second_element:Object)->bool:
+	context[ARRAY_FIRST_ELEMENT_STR] = first_element
+	context[ARRAY_SECOND_ELEMENT_STR] = second_element
+	return is_satisfied()
