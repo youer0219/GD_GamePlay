@@ -45,7 +45,7 @@ func test_basic_expression_guard() -> bool:
 	var guard = GD_ExpressionGuard.new()
 	guard.expression_string = "true"
 	
-	var result = guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result = guard.is_satisfied({})
 	return print_result("基础表达式测试", result, "表达式 'true' 应该返回 true")
 
 # 测试带上下文的表达式守卫
@@ -54,20 +54,19 @@ func test_expression_with_context() -> bool:
 	guard.expression_string = "health > 50 and has_key"
 	
 	var context = {"health": 75, "has_key": true}
-	var result = guard.is_satisfied(GD_GuardGroup.new(), context)
+	var result = guard.is_satisfied(context)
 	return print_result("带上下文表达式测试", result, "表达式 'health > 50 and has_key' 应该返回 true")
 
 # 测试带owner的表达式守卫
 func test_expression_with_owner() -> bool:
 	var guard = GD_ExpressionGuard.new()
-	guard.expression_string = "owner_property > 50 and get_owner_method()"
+	guard.expression_string = "owner.owner_property > 50 and owner.get_owner_method()"
 	
 	var test_context = TestContext.new()
-	var guard_group = GD_GuardGroup.new()
-	guard_group.owner = test_context
+	var context = {"owner": test_context}
 	
-	var result = guard.is_satisfied(guard_group, {})
-	return print_result("带Owner表达式测试", result, "表达式 'owner_property > 50 and get_owner_method()' 应该返回 true")
+	var result = guard.is_satisfied(context)
+	return print_result("带Owner表达式测试", result, "表达式 'owner.owner_property > 50 and owner.get_owner_method()' 应该返回 true")
 
 # 测试AllOf守卫
 func test_all_of_guard() -> bool:
@@ -82,7 +81,7 @@ func test_all_of_guard() -> bool:
 	var all_guard = GD_AllOfGuard.new()
 	all_guard.guards = [true_guard1, true_guard2] as Array[GD_Guard]
 	
-	var result = all_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result = all_guard.is_satisfied({})
 	return print_result("AllOf守卫测试", result, "两个true守卫的AllOf应该返回 true")
 
 # 测试AnyOf守卫
@@ -98,7 +97,7 @@ func test_any_of_guard() -> bool:
 	var any_guard = GD_AnyOfGuard.new()
 	any_guard.guards = [true_guard, false_guard] as Array[GD_Guard]
 	
-	var result = any_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result = any_guard.is_satisfied({})
 	return print_result("AnyOf守卫测试", result, "一个true和一个false守卫的AnyOf应该返回 true")
 
 # 测试Not守卫
@@ -109,7 +108,7 @@ func test_not_guard() -> bool:
 	var not_guard = GD_NotGuard.new()
 	not_guard.guard = false_guard
 	
-	var result = not_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result = not_guard.is_satisfied({})
 	return print_result("Not守卫测试", result, "Not false应该返回 true")
 
 # 测试复杂守卫组合
@@ -133,11 +132,11 @@ func test_complex_guard_combinations() -> bool:
 	
 	# 测试场景1: 健康高、魔法低、有钥匙
 	var context1 = {"health": 75, "mana": 10, "has_key": true}
-	var result1 = final_guard.is_satisfied(GD_GuardGroup.new(), context1)
+	var result1 = final_guard.is_satisfied(context1)
 	
 	# 测试场景2: 健康低、魔法低、无钥匙
 	var context2 = {"health": 30, "mana": 10, "has_key": false}
-	var result2 = final_guard.is_satisfied(GD_GuardGroup.new(), context2)
+	var result2 = final_guard.is_satisfied(context2)
 	
 	return print_result("复杂守卫组合测试", result1 and not result2, 
 		"场景1应该返回true, 场景2应该返回false")
@@ -149,28 +148,28 @@ func test_error_handling() -> bool:
 	# 测试空表达式
 	var empty_guard = GD_ExpressionGuard.new()
 	empty_guard.expression_string = ""
-	var result1 = empty_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result1 = empty_guard.is_satisfied({})
 	passed = passed and not result1
 	
 	# 测试无效表达式
 	var invalid_guard = GD_ExpressionGuard.new()
 	invalid_guard.expression_string = "this is not valid code"
-	var result2 = invalid_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result2 = invalid_guard.is_satisfied({})
 	passed = passed and not result2
 	
 	# 测试空AllOf守卫
 	var empty_all_guard = GD_AllOfGuard.new()
-	var result3 = empty_all_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result3 = empty_all_guard.is_satisfied({})
 	passed = passed and not result3
 	
 	# 测试空AnyOf守卫
 	var empty_any_guard = GD_AnyOfGuard.new()
-	var result4 = empty_any_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result4 = empty_any_guard.is_satisfied({})
 	passed = passed and not result4
 	
 	# 测试空Not守卫
 	var empty_not_guard = GD_NotGuard.new()
-	var result5 = empty_not_guard.is_satisfied(GD_GuardGroup.new(), {})
+	var result5 = empty_not_guard.is_satisfied({})
 	passed = passed and result5  # 空Not守卫应该返回true
 	
 	return print_result("错误处理测试", passed, "各种错误情况应该被正确处理")
