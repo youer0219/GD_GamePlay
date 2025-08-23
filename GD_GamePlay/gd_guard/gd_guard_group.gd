@@ -1,12 +1,11 @@
 extends Resource
 class_name GD_GuardGroup
 
-const OWNER_STR := &"owner"
+const GD_GUARD_GROUP_STR := &"gd_guard_group"
 const ARRAY_ELEMENT_STR := &"array_element"
 const ARRAY_FIRST_ELEMENT_STR := &"array_first_element"
 const ARRAY_SECOND_ELEMENT_STR := &"array_second_element"
 
-## TODO:是否应该为node？
 var owner:Object
 
 @export var context:Dictionary
@@ -19,7 +18,7 @@ func is_satisfied()->bool:
 	if not init_guard:
 		push_error("No initial guard set in GuardGroup")
 		return false
-	context[OWNER_STR] = owner
+	context[GD_GUARD_GROUP_STR] = self
 	return init_guard.is_satisfied(context.duplicate())
 
 # 用于数组遍历的方法

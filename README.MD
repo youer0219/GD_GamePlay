@@ -52,20 +52,19 @@ PS:其实原版就是GDS转C++，这是一个轮回哈哈。为了避免类名�
 
 一般建议使用守卫组类，在编辑器中添加守卫资源实现各类守卫功能。但也可以单独使用守卫类，调用时设计好上下文字典。
 
-已实现的守卫类：
-- 逻辑守卫
-	- GD_AllOfGuard：全真为真
-	- GD_AnyOfGuard：全假为假
-	- GD_NotGuard：相反
-	- GD_ThresholdGuard：门限，大于等于一定数量为真即为真
-- 表达式守卫 GD_ExpressionGuard：基于context和表达式判断正误
-
+- 已实现的守卫类：
+	- 逻辑守卫
+		- GD_AllOfGuard：全真为真
+		- GD_AnyOfGuard：全假为假
+		- GD_NotGuard：相反
+		- GD_ThresholdGuard：门限，大于等于一定数量为真即为真
+	- 表达式守卫 GD_ExpressionGuard：基于context和表达式判断正误
 - TODO:
 	- 不确定是否guard类中也应该加入自己的context属性。未来可能改变。
 
 ## utilities
 
-之前实现的一个优先级字典。已弃用。
+之前实现的一个优先级字典。`已弃用`。
 
 ## MIT协议
 
