@@ -75,9 +75,17 @@ class ConflictBase_Buff extends Test_Buff:
 class Instant_Buff extends Test_Buff:
 	func get_duration(_container) -> float:
 		return 0.0
-	
+
 	func can_remove_buff(_container: GD_BuffContainer, _runtime_buff: GD_RuntimeBuff) -> bool:
 		return true
+
+class ManualInitBuff extends Test_Buff:
+	func _on_buff_awake(_container: GD_BuffContainer, runtime_buff: GD_RuntimeBuff) -> void:
+		super(_container, runtime_buff)
+		#// 在awake阶段手动初始化黑板
+		runtime_buff.blackboard["manual_init_key"] = "manual_init_value"
+		runtime_buff.blackboard["counter"] = 42 # 甚至可以覆盖Context
+
 
 # 打印带颜色的测试结果
 func print_result(test_name: String, passed: bool, details: String = "") -> bool:
@@ -515,30 +523,59 @@ func test_blackboard() -> bool:
 	var container = GD_BuffContainer.new()
 	add_child(container)
 	var passed = true
-	
-	# 创建带黑板的buff
+
+	# 1. 测试新的黑板初始化行为：运行时黑板初始应为空
 	var buff = Test_Buff.new()
 	buff.buff_name = "BlackboardTest"
 	buff.default_duration = 2.0
-	buff.init_buff_blackboard = {"counter": 0, "message": "hello"}
-	
-	container.add_buff(buff)
+	# 注意：buff.init_buff_blackboard 不再被自动复制到运行时黑板
+	buff.init_buff_blackboard = {"from_resource": 100, "resource_message": "hello_from_resource"} 
+
+	# 方法A: 通过 add_buff 的 context 参数初始化运行时黑板
+	var initialContext = {"counter": 0, "message": "hello"}
+	passed = print_result("通过Context添加Buff", container.add_buff(buff, initialContext), "应成功通过Context添加Buff") and passed
 	container._physics_process(0.0)
-	
+
 	var runtime = container.get_runtime_buff(buff)
-	passed = print_result("黑板初始化", 
+	# 关键断言：运行时黑板不应包含资源中的初始化字典，但应包含传入的context
+	passed = print_result("运行时黑板初始状态(应不含资源数据)", 
+		!runtime.blackboard.has("from_resource") && !runtime.blackboard.has("resource_message"),
+		"运行时黑板错误地包含了资源init_buff_blackboard的数据") and passed
+	passed = print_result("运行时黑板初始化(应包含Context数据)", 
 		runtime.blackboard.get("counter") == 0 and runtime.blackboard.get("message") == "hello",
-		"黑板未正确初始化") and passed
-	
-	# 修改黑板值
+		"运行时黑板未正确初始化Context数据") and passed
+
+	# 方法B: 也可以在Buff的 _on_buff_awake 或 _on_buff_start 中初始化
+	# 创建一个新的Buff来测试这种方法
+	var manualBuff = ManualInitBuff.new()
+	manualBuff.buff_name = "ManualBlackboardTest"
+	manualBuff.default_duration = 2.0
+
+	passed = print_result("添加手动初始化Buff", container.add_buff(manualBuff, initialContext), "应成功添加手动初始化Buff") and passed
+	container._physics_process(0.0)
+	var manualRuntime = container.get_runtime_buff(manualBuff)
+
+	# 检查手动初始化的值
+	passed = print_result("手动初始化值存在", manualRuntime.blackboard.get("manual_init_key") == "manual_init_value", "手动初始化值未设置") and passed
+	# 检查Context值是否被覆盖（取决于ManualInitBuff的逻辑）
+	# 此例中 manualInitBuff 的 awake 方法覆盖了 counter
+	passed = print_result("手动初始化覆盖Context", manualRuntime.blackboard.get("counter") == 42, "手动初始化未覆盖Context值") and passed
+	# 检查未覆盖的Context值
+	passed = print_result("未覆盖的Context值存在", manualRuntime.blackboard.get("message") == "hello", "未覆盖的Context值丢失") and passed
+
+	# 2. 测试黑板修改功能 (保持不变，测试的是读写操作本身)
 	runtime.blackboard["counter"] = 5
 	runtime.blackboard["message"] = "world"
-	passed = print_result("黑板修改", 
+	passed = print_result("黑板修改持久化", 
 		runtime.blackboard.get("counter") == 5 and runtime.blackboard.get("message") == "world",
-		"黑板修改未保存") and passed
-	
+		"黑板修改未正确保存") and passed
+
+	# 3. 清理
 	container.queue_free()
 	return passed
+
+
+
 
 func test_interval_processing() -> bool:
 	print("\n[测试间隔处理]")
